@@ -709,4 +709,7 @@ export const frFRMessages = {
   "账号绑定已变更": "La liaison du compte a changé",
   "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Saisissez l'adresse complète du point de terminaison indiquée par le fournisseur ; elle ne peut pas contenir de chaîne de requête.",
   "插入地址模板": "Insérer le modèle d'adresse",
+  "手动填写 API 地址": "Saisir l'adresse manuellement",
+  "按项目与区域填写": "Renseigner par projet et emplacement",
+  "参数不完整或格式有误，地址尚未生成。": "Les paramètres sont incomplets ou mal formés ; l'adresse n'a pas encore été générée.",
 } satisfies Messages;

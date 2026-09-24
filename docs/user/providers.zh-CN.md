@@ -22,7 +22,7 @@
 
 预设只保留有文档依据的路由。MiniMax 国内/API 与国际预设保存 Bearer 的 Chat Completions、Responses，以及 `x-api-key` 的 Messages；MiMo API 与 Token Plan 用 Bearer 保存三种协议。Kimi 仍为 Chat Completions 加 Messages。内置模型设置与用户手动禁用状态继续生效。
 
-创建预设供应商时，[渠道预设](provider-presets.zh-CN.md) 统一展示在一个列表中，移除 Plan/API 分组。Custom API 固定首位，其余按名称排列；厂商的服务版本仍可在详情中选择。这些模板与默认展示的已配置 Destination 分开。固定预设显示准确连接摘要，并填入可修改的默认对话模型；Azure、Bedrock、Vertex AI 仍需资源、地区或项目范围内的地址，且模型 ID 必须与上游自身的命名一致。从 **供应商 → 添加供应商** 或 **账号 → 新增账号**（同一套选择器）**保存草稿** 会把连接留在列表并标为 **草稿**（不参与路由）。**完成设置** 需要模型；keyed 鉴权还需要 Key，或在继续设置时保留已保存 Key。两个入口使用同一次 onboarding commit。模板变化不会改写已保存连接。
+创建预设供应商时，[渠道预设](provider-presets.zh-CN.md) 统一展示在一个列表中，移除 Plan/API 分组。Custom API 固定首位，其余按名称排列；厂商的服务版本仍可在详情中选择。这些模板与默认展示的已配置 Destination 分开。固定预设显示准确连接摘要，并填入可修改的默认对话模型；Azure、Bedrock 仍需填写资源或地区地址，Vertex AI 只需填 GCP 项目 ID 与区域并由 OCG 拼出地址；模型 ID 必须与上游自身的命名一致。从 **供应商 → 添加供应商** 或 **账号 → 新增账号**（同一套选择器）**保存草稿** 会把连接留在列表并标为 **草稿**（不参与路由）。**完成设置** 需要模型；keyed 鉴权还需要 Key，或在继续设置时保留已保存 Key。两个入口使用同一次 onboarding commit。模板变化不会改写已保存连接。
 
 要接入另一个上游或贡献内置集成，请先阅读[新增供应商](add-provider.zh-CN.md)；其中包含用户定义供应商、Custom API 与密封适配器注册表路径。
 

@@ -2,13 +2,13 @@
 
 # Plan 与 API 预设
 
-创建预设或显式重新套用预设时，系统会保存文档所列的整组路由。固定地址的预设不会从运行时主机名推导替换路径；更新 OCG 也不会改写已保存的连接。Azure 和 Bedrock 需填写资源或地区专属的 Responses URL。地址符合官方 Azure OpenAI 或 Bedrock Runtime 的主机与路径格式时，OCG 会补齐同一资源的其他已确认路由；自定义主机或路径则保留为一条可手动编辑的路由。Azure 静态 API Key 使用 `api-key` 请求头，Microsoft Entra 令牌使用 Bearer。Bedrock 没有兼容的 `GET /models`，需自行填写模型 ID。Gemini 原生 Google API 不属于这三种上游格式，因此 Gemini API 与 Vertex AI 两个预设都使用官方列明的 OpenAI 兼容接口：前者是 `generativelanguage.googleapis.com`，后者是你自己项目端点下的 `endpoints/openapi` 路径。
+创建预设或显式重新套用预设时，系统会保存文档所列的整组路由。固定地址的预设不会从运行时主机名推导替换路径；更新 OCG 也不会改写已保存的连接。Azure 和 Bedrock 需填写资源或地区专属的 Responses URL。地址符合官方 Azure OpenAI 或 Bedrock Runtime 的主机与路径格式时，OCG 会补齐同一资源的其他已确认路由；自定义主机或路径则保留为一条可手动编辑的路由。Azure 静态 API Key 使用 `api-key` 请求头，Microsoft Entra 令牌使用 Bearer。Bedrock 没有兼容的 `GET /models`，需自行填写模型 ID。Gemini 原生 Google API 不属于这三种上游格式，因此 Gemini API 与 Vertex AI 两个预设都使用官方列明的 OpenAI 兼容接口：前者是 `generativelanguage.googleapis.com`，后者是你自己项目端点下的 `endpoints/openapi` 路径。Vertex 的这条地址无需粘贴：填入 GCP 项目 ID 与区域，OCG 会按预设模板拼出完整地址；区域填 `global` 时使用裸主机名，其他区域会加区域前缀。
 
 要更新早期预设创建的连接，进入**供应商 → 编辑连接**，点击**采用预设协议**，检查受影响的 Key 与地址后保存。仅更新 OCG 不会改写已有路由和授权。
 
 MiniMax 国内/API 与国际预设会保存独立的 Chat Completions、Responses 和 Messages 路由。Chat 和 Responses 使用 Bearer；Messages 使用 `x-api-key`。完整端点会被保存，面板不会猜测其他路径。MiMo API 与 MiMo Token Plan（国内）同样保存 Bearer 鉴权的 Chat `/v1/chat/completions`、Responses `/v1/responses` 和 Messages `/anthropic/v1/messages` 三条路由。选择规则见[协议默认值](providers.zh-CN.md#协议默认值与连接测试)。
 
-从 **账号 → 新增账号** 或 **供应商 → 添加供应商** 浏览 Plan/API 预设。两个按钮打开同一套账号页选择器。已有连接只列出仍有账号的内置供应商和已保存的用户定义供应商；未使用的内置模板与创建模板一起出现在新服务里。预设按厂商分组，地区或套餐变体使用紧凑选择器；搜索包含厂商、变体、预设名称与 ID，以及端点主机。选择器在 Key 字段之前显示只读连接摘要。固定预设提供地址、协议、鉴权与可修改的默认模型；Azure、Bedrock 仍需填写资源或地区地址，以及部署或模型信息；Vertex AI 需填写你自己项目下的 `endpoints/openapi` 地址，且上游模型 ID 必须保留 publisher 前缀。完成预设必须填写 Key，并同时创建供应商和首个账号；**保存草稿** 可以省略 Key。Custom API 与手动配置仍保留完整设置。
+从 **账号 → 新增账号** 或 **供应商 → 添加供应商** 浏览 Plan/API 预设。两个按钮打开同一套账号页选择器。已有连接只列出仍有账号的内置供应商和已保存的用户定义供应商；未使用的内置模板与创建模板一起出现在新服务里。预设按厂商分组，地区或套餐变体使用紧凑选择器；搜索包含厂商、变体、预设名称与 ID，以及端点主机。选择器在 Key 字段之前显示只读连接摘要。固定预设提供地址、协议、鉴权与可修改的默认模型；Azure、Bedrock 仍需填写资源或地区地址，以及部署或模型信息；Vertex AI 只需填 GCP 项目 ID 与区域，地址由 OCG 拼出，且上游模型 ID 必须保留 publisher 前缀。完成预设必须填写 Key，并同时创建供应商和首个账号；**保存草稿** 可以省略 Key。Custom API 与手动配置仍保留完整设置。
 
 预设通过 Dashboard V4 onboarding commit 原子保存为普通用户定义供应商，参与账号排序、故障回退、模型路由和请求日志，保存后仍可编辑。它不会新增独立适配器，也不会在保存前自动创建账号。
 

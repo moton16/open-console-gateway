@@ -21,6 +21,8 @@ Provider 注册表始终静态、密封。
 
 加入一个已有多变体的家族是唯一的例外：此时还必须修改已发布的那一行。多变体家族里每条预设都需要非空且唯一的 `variant`，而单条家族又必须不带 `variant`，因此新增第二条 Google 预设时必须同时给第一条补上变体标签。`src/domain/provider-presets.test.ts` 会双向强制这条规则，选择器按 `variant ?? name` 显示每一行。
 
+当供应商地址只是少数几个值不同时，不要让用户粘贴整条地址：声明 `endpointTemplate`（带 `{param}` 占位符的 https 骨架）与 `endpointParams`（key、本地化 label，以及可选的 hint / placeholder / default / pattern），编辑器会按填写值拼出地址，并能从已保存地址反解回参数。`{location-host}` 是唯一的派生 token：`global` 解析为裸主机名，其他区域加区域前缀。拼出的结果就是普通 URL，因此 Rust 侧、Dashboard 契约与存储 schema 都不变。形状规则（token 与参数必须互相匹配、`endpointUrl` 必须为空、每个 pattern 必须拒绝 `/`）由 `providerPresetShapeIssues` 强制。
+
 ## 2. 应用
 
 应用页目前只有一个 DSH 专用 V4 流程和一份 OCG 自有插件包；它不是通用注册表，也不是承诺开放的扩展点。只有第二个应用具备明确的安装、凭据、生命周期与验收契约时，才按该具体需求增加。见[应用](../user/applications.zh-CN.md)。

@@ -58,6 +58,18 @@ export interface ProviderPreset {
    * editor keeps the single default route. Never inferred from display names.
    */
   protocolRoutes?: ProviderPresetProtocolRoute[];
+  /**
+   * Address skeleton for presets whose endpoint is identical for everyone
+   * except for a few documented parameters, such as a GCP project and
+   * location. `{token}` placeholders name declared `endpointParams`;
+   * `{location-host}` is derived from the `location` parameter because those
+   * hosts carry a regional prefix. The composed value is an ordinary
+   * https URL: validation, storage, and the request path are unchanged, and
+   * the parameters are never persisted on their own.
+   */
+  endpointTemplate?: string;
+  /** Parameters of `endpointTemplate`, in display order. */
+  endpointParams?: ProviderPresetEndpointParam[];
 }
 
 export interface ProviderPresetProtocolRoute {
@@ -65,6 +77,23 @@ export interface ProviderPresetProtocolRoute {
   endpointUrl: string;
   authScheme: AuthSchemeDto;
 }
+
+export interface ProviderPresetEndpointParam {
+  key: string;
+  label: { en: string; zh: string };
+  hint?: { en: string; zh: string };
+  placeholder?: string;
+  default?: string;
+  /**
+   * Full-match regular expression for the typed value. The default charset
+   * keeps a value from smuggling path separators or credentials into the
+   * composed address.
+   */
+  pattern?: string;
+}
+
+/** Typed parameter values, keyed by `ProviderPresetEndpointParam.key`. */
+export type ProviderPresetEndpointValues = Record<string, string>;
 
 /** Resolve only the two customer-specific hosts whose route paths are documented. */
 export function providerPresetRoutesForEndpoint(
@@ -194,6 +223,9 @@ export function providerPresetShapeIssues(raw: unknown, index = 0): string[] {
     && (typeof row.endpointPlaceholder !== "string" || !row.endpointPlaceholder.trim())) {
     issues.push(`${where}: endpointPlaceholder must be a non-empty string when present`);
   }
+  if (row.endpointTemplate !== undefined) {
+    issues.push(...providerPresetEndpointTemplateIssues(row, where));
+  }
   if (row.modelDiscovery !== undefined && typeof row.modelDiscovery !== "boolean") {
     issues.push(`${where}: modelDiscovery must be a boolean when present`);
   }
@@ -240,6 +272,131 @@ function providerPresetProtocolRouteIssues(raw: unknown, where: string): string[
       issues.push(
         `${routeWhere}: authScheme must be bearer, x-api-key, api-key, x-goog-api-key, or none`,
       );
+    }
+  }
+  return issues;
+}
+
+const ENDPOINT_PARAM_KEY = /^[a-z][a-z0-9-]*$/u;
+/** The default charset keeps values from smuggling separators or credentials. */
+const ENDPOINT_PARAM_DEFAULT_PATTERN = "[A-Za-z0-9._-]+";
+
+/**
+ * Derived host token: Vertex addresses are global on the bare host and
+ * regional behind a location prefix, so the host is not a typed parameter.
+ */
+export const ENDPOINT_LOCATION_HOST_TOKEN = "location-host";
+
+/** Placeholders a template uses, in first-appearance order. */
+export function providerPresetEndpointTemplateTokens(template: string): string[] {
+  const tokens: string[] = [];
+  for (const match of template.matchAll(/\{([a-z][a-z0-9-]*)\}/gu)) {
+    const token = match[1]!;
+    if (!tokens.includes(token)) tokens.push(token);
+  }
+  return tokens;
+}
+
+function compiledEndpointParamPattern(pattern?: string): RegExp | null {
+  try {
+    // Anchored on purpose: a partial match would let a value extend the path.
+    return RegExp(`^(?:${pattern || ENDPOINT_PARAM_DEFAULT_PATTERN})$`, "u");
+  } catch {
+    return null;
+  }
+}
+
+function endpointParamTextIssues(
+  param: Record<string, unknown>,
+  paramWhere: string,
+  field: "label" | "hint",
+): string[] {
+  const value = param[field];
+  if (value === undefined) return field === "hint" ? [] : [`${paramWhere}: ${field} is required`];
+  const text = (typeof value === "object" && value !== null ? value : {}) as Record<string, unknown>;
+  if (typeof text.en !== "string" || !text.en.trim()
+    || typeof text.zh !== "string" || !text.zh.trim()) {
+    return [`${paramWhere}: ${field} needs non-empty en and zh`];
+  }
+  return [];
+}
+
+function providerPresetEndpointTemplateIssues(
+  row: Record<string, unknown>,
+  where: string,
+): string[] {
+  const issues: string[] = [];
+  const template = row.endpointTemplate;
+  if (typeof template !== "string" || !template.trim()) {
+    return [`${where}: endpointTemplate must be a non-empty string when present`];
+  }
+  if (!/^https:\/\/[^?#\s]+$/u.test(template)) {
+    issues.push(`${where}: endpointTemplate must be an https address without query or fragment`);
+  }
+  if (String(row.endpointUrl ?? "") !== "") {
+    issues.push(`${where}: endpointTemplate requires an empty endpointUrl`);
+  }
+  const rawParams = row.endpointParams;
+  if (!Array.isArray(rawParams) || rawParams.length === 0) {
+    issues.push(`${where}: endpointTemplate requires endpointParams`);
+    return issues;
+  }
+  if (rawParams.length > 4) issues.push(`${where}: endpointParams allows at most 4 parameters`);
+  const keys = new Set<string>();
+  for (const [index, entry] of rawParams.entries()) {
+    const paramWhere = `${where} endpointParams[${index}]`;
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      issues.push(`${paramWhere}: not an object`);
+      continue;
+    }
+    const param = entry as Record<string, unknown>;
+    const key = param.key;
+    if (typeof key !== "string" || !ENDPOINT_PARAM_KEY.test(key)) {
+      issues.push(`${paramWhere}: key must start with a lowercase letter and use letters, digits, or dashes`);
+    } else if (keys.has(key)) {
+      issues.push(`${paramWhere}: key is duplicated`);
+    } else {
+      keys.add(key);
+    }
+    issues.push(...endpointParamTextIssues(param, paramWhere, "label"));
+    issues.push(...endpointParamTextIssues(param, paramWhere, "hint"));
+    for (const field of ["placeholder", "default"] as const) {
+      if (param[field] !== undefined
+        && (typeof param[field] !== "string" || !String(param[field]).trim())) {
+        issues.push(`${paramWhere}: ${field} must be a non-empty string when present`);
+      }
+    }
+    if (param.pattern !== undefined) {
+      if (typeof param.pattern !== "string" || !param.pattern.trim()) {
+        issues.push(`${paramWhere}: pattern must be a non-empty string when present`);
+      } else {
+        const probe = typeof param.placeholder === "string" && param.placeholder.trim()
+          ? param.placeholder.trim()
+          : typeof param.default === "string" ? param.default.trim() : "";
+        const compiled = compiledEndpointParamPattern(param.pattern);
+        // The example the user sees must satisfy the rule that gates saving,
+        // and no pattern may admit a path separator.
+        if (!compiled || compiled.test("a/b") || (Boolean(probe) && !compiled.test(probe))) {
+          issues.push(`${paramWhere}: pattern must accept its own example and reject "/"`);
+        }
+      }
+    }
+  }
+  const tokens = providerPresetEndpointTemplateTokens(template);
+  for (const token of tokens) {
+    if (token === ENDPOINT_LOCATION_HOST_TOKEN) {
+      if (!keys.has("location")) {
+        issues.push(`${where}: {${ENDPOINT_LOCATION_HOST_TOKEN}} requires a location parameter`);
+      }
+      continue;
+    }
+    if (!keys.has(token)) {
+      issues.push(`${where}: {${token}} has no matching endpointParams entry`);
+    }
+  }
+  for (const key of keys) {
+    if (!tokens.includes(key)) {
+      issues.push(`${where}: endpoint parameter ${key} is not used by endpointTemplate`);
     }
   }
   return issues;
@@ -395,6 +552,111 @@ export function applyProviderPresetToDraft(
 /** A placeholder is display-only; it is never a usable endpoint value. */
 export function providerPresetEndpointPlaceholder(preset: ProviderPreset): string {
   return preset.endpointPlaceholder ?? "";
+}
+
+/** Parameters a preset declares for its endpoint template, in display order. */
+export function providerPresetEndpointParams(
+  preset: Pick<ProviderPreset, "endpointTemplate" | "endpointParams">,
+): ProviderPresetEndpointParam[] {
+  if (!preset.endpointTemplate) return [];
+  return (preset.endpointParams ?? []).map((param) => ({ ...param }));
+}
+
+/** Seed values for the parameter form: declared defaults, otherwise empty. */
+export function providerPresetEndpointDefaults(
+  preset: Pick<ProviderPreset, "endpointTemplate" | "endpointParams">,
+): ProviderPresetEndpointValues {
+  const values: ProviderPresetEndpointValues = {};
+  for (const param of providerPresetEndpointParams(preset)) values[param.key] = param.default ?? "";
+  return values;
+}
+
+export function providerPresetEndpointParamIssue(
+  param: ProviderPresetEndpointParam,
+  value: string,
+): "missing" | "invalid" | null {
+  const text = value.trim();
+  if (!text) return "missing";
+  const pattern = compiledEndpointParamPattern(param.pattern);
+  if (!pattern) return "invalid";
+  return pattern.test(text) ? null : "invalid";
+}
+
+/** Vertex hosts carry the regional prefix; `global` stays on the bare host. */
+export function providerPresetEndpointLocationHost(location: string): string {
+  const value = location.trim().toLocaleLowerCase();
+  return value && value !== "global"
+    ? `${value}-aiplatform.googleapis.com`
+    : "aiplatform.googleapis.com";
+}
+
+/**
+ * Composes the full address from typed values. Returns "" while any parameter
+ * is missing or malformed, so a partial address is never saved; the result is
+ * an ordinary absolute https URL.
+ */
+export function composeProviderPresetEndpoint(
+  preset: Pick<ProviderPreset, "endpointTemplate" | "endpointParams">,
+  values: ProviderPresetEndpointValues,
+): string {
+  const template = preset.endpointTemplate;
+  if (!template) return "";
+  let composed = template;
+  for (const token of providerPresetEndpointTemplateTokens(template)) {
+    const isHost = token === ENDPOINT_LOCATION_HOST_TOKEN;
+    const param = preset.endpointParams?.find((entry) => entry.key === (isHost ? "location" : token));
+    if (!param) return "";
+    const typed = (isHost ? values.location : values[token]) ?? "";
+    const value = typed.trim() || param.default?.trim() || "";
+    if (providerPresetEndpointParamIssue(param, value)) return "";
+    composed = composed.replaceAll(
+      `{${token}}`,
+      isHost ? providerPresetEndpointLocationHost(value) : value,
+    );
+  }
+  // Rust rejects credentials, query strings, fragments, and non-http schemes at
+  // save time; failing here keeps that rejection off the user's path.
+  if (!isHttpUrl(composed) || /[\s?#@]/u.test(composed)) return "";
+  return composed;
+}
+
+/**
+ * Reads parameter values back out of a stored address so editing keeps the
+ * parameter form instead of degrading to a raw URL. Returns null when the
+ * address is not an exact instance of the template — a custom host, a proxy,
+ * or any other shape — which is the caller's signal to use the raw field.
+ */
+export function providerPresetEndpointValuesFromUrl(
+  preset: Pick<ProviderPreset, "endpointTemplate" | "endpointParams">,
+  endpointUrl: string,
+): ProviderPresetEndpointValues | null {
+  const template = preset.endpointTemplate;
+  const target = endpointUrl.trim();
+  if (!template || !target) return null;
+  const tokens = providerPresetEndpointTemplateTokens(template);
+  let pattern = "^";
+  for (const part of template.split(/(\{[a-z][a-z0-9-]*\})/gu)) {
+    const token = /^\{([a-z][a-z0-9-]*)\}$/u.exec(part);
+    pattern += token ? "([^/?#\\s]+)" : part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  }
+  pattern += "$";
+  const match = RegExp(pattern, "u").exec(target);
+  if (!match) return null;
+  const values: ProviderPresetEndpointValues = {};
+  let capturedHost = "";
+  tokens.forEach((token, index) => {
+    const captured = match[index + 1] ?? "";
+    if (token === ENDPOINT_LOCATION_HOST_TOKEN) capturedHost = captured;
+    else values[token] = captured;
+  });
+  for (const param of providerPresetEndpointParams(preset)) {
+    if (providerPresetEndpointParamIssue(param, values[param.key] ?? "")) return null;
+  }
+  if (tokens.includes(ENDPOINT_LOCATION_HOST_TOKEN)
+    && capturedHost !== providerPresetEndpointLocationHost(values.location ?? "")) {
+    return null;
+  }
+  return values;
 }
 
 export function providerPresetModelDiscoveryEnabled(preset: ProviderPreset): boolean {

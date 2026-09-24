@@ -21,7 +21,7 @@ This guide is for people running Open Console Gateway as a desktop app, a headle
 - [Applications](user/applications.md) — The DSH plugin installation flow, recovery, and removal.
 - [Accounts](user/accounts.md) — Plans, credentials, ordering, quota behavior, and managed onboarding.
 - [Providers](user/providers.md) — Catalog, provider contracts, per-model protocol overrides, probes, and user-defined Providers.
-- [Plan And API Presets](user/provider-presets.md) — Browse Plan/API presets from Accounts or Providers; fixed presets supply protocol, authentication, and a default model, and a few (Azure, Bedrock, Vertex AI) ask you for the address.
+- [Plan And API Presets](user/provider-presets.md) — Browse Plan/API presets from Accounts or Providers; fixed presets supply protocol, authentication, and a default model, a few (Azure, Bedrock) ask you for the address, and Vertex AI asks only for your GCP project ID and location.
 - [Logs And Settings](user/logs-settings.md) — Request logs, settings, and proxy modes.
 - [Gateway Behavior](user/gateway.md) — Endpoints, authentication, and aliases.
 - [Protocol Conversion](user/protocol-conversion.md) — Preferred/supported protocols, passthrough, and conversion limits.

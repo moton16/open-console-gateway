@@ -44,6 +44,17 @@ Google preset has to give the first row its variant label too.
 `src/domain/provider-presets.test.ts` enforces both directions, and the
 chooser labels each row with `variant ?? name`.
 
+When a customer-specific address only varies by a few documented values, do not
+make the user paste it: declare `endpointTemplate` (an https skeleton with
+`{param}` tokens) plus `endpointParams` (key, localized label, and optional
+hint / placeholder / default / pattern). The editor composes the address from
+the typed values and reads them back out of a saved address. `{location-host}`
+is the one derived token: `global` resolves to the bare host and any other
+location prefixes it. The composed value is an ordinary URL, so the Rust side,
+the Dashboard contract, and the storage schema stay unchanged. The shape rules
+— tokens and parameters must agree, `endpointUrl` must stay empty, and every
+pattern must reject `/` — live in `providerPresetShapeIssues`.
+
 ## 2. Applications
 
 The Applications page currently contains one DSH-specific V4 flow and one

@@ -40,9 +40,11 @@ get billed for a bad guess.
   recording as Custom API applies. `403` means the Key's API restrictions do not
   cover Agent Platform, so routing moves to another provider. `404` has four
   causes: the saved address is not the `endpoints/openapi` one, the project or
-  location is wrong, the upstream model ID lost its publisher prefix (it must
-  read `google/gemini-2.5-flash`), or the `YOUR-PROJECT` / `YOUR-LOCATION`
-  template was saved unreplaced. `429` means the Key's own rate limit; see
+  location is wrong — the address is composed from the project ID and location
+  you entered, and a location other than `global` also prefixes the host name
+  —, the upstream model ID lost its publisher prefix (it must read
+  `google/gemini-2.5-flash`), or a manually pasted `YOUR-PROJECT` /
+  `YOUR-LOCATION` template was saved unreplaced. `429` means the Key's own rate limit; see
   [limits](limits.md).
 - **The dashboard says the page version does not match the service.** A cached
   older SPA hit the tombstoned `/dashboard/api` REST and received HTTP 410.

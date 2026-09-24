@@ -709,4 +709,7 @@ export const ptBRMessages = {
   "账号绑定已变更": "O vínculo da conta mudou",
   "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Informe o endereço de endpoint completo da documentação do provedor; ele não pode conter string de consulta.",
   "插入地址模板": "Inserir modelo de endereço",
+  "手动填写 API 地址": "Inserir o endereço manualmente",
+  "按项目与区域填写": "Preencher por projeto e local",
+  "参数不完整或格式有误，地址尚未生成。": "Os parâmetros estão incompletos ou malformados, então o endereço ainda não foi gerado.",
 } satisfies Messages;

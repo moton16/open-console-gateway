@@ -708,4 +708,7 @@ export const esESMessages = {
   "账号绑定已变更": "El vínculo de la cuenta cambió",
   "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Introduce la dirección de endpoint completa de la documentación del proveedor; no puede incluir una cadena de consulta.",
   "插入地址模板": "Insertar plantilla de dirección",
+  "手动填写 API 地址": "Introducir la dirección manualmente",
+  "按项目与区域填写": "Rellenar por proyecto y ubicación",
+  "参数不完整或格式有误，地址尚未生成。": "Los parámetros están incompletos o mal formados, así que la dirección aún no se ha generado.",
 } satisfies Messages;

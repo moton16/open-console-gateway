@@ -84,18 +84,37 @@
             :aria-label="t('鉴权方式')"
           />
         </n-form-item>
+        <n-form-item
+          v-for="row in endpointParamRows"
+          :key="row.param.key"
+          :label="row.label"
+          class="full-width-field"
+        >
+          <n-input
+            :value="row.value"
+            :disabled="fieldsLocked"
+            :placeholder="row.param.placeholder ?? ''"
+            :input-props="{ 'aria-label': row.label }"
+            @update:value="row.set"
+          />
+          <p v-if="row.hint" class="field-hint">{{ row.hint }}</p>
+        </n-form-item>
         <n-form-item v-if="!fixedPreset || fixedEndpointRequired" :label="t('API 地址')" class="full-width-field">
           <n-input
             v-model:value="draft.endpoint_url"
             :disabled="fieldsLocked"
+            :readonly="endpointParamsActive"
             :input-props="{ 'aria-label': t('API 地址') }"
             :placeholder="endpointPlaceholder"
           />
-          <p v-if="fixedEndpointRequired" class="field-hint">
+          <p v-if="endpointParamsActive && !draft.endpoint_url.trim()" class="field-hint">
+            {{ t("参数不完整或格式有误，地址尚未生成。") }}
+          </p>
+          <p v-else-if="fixedEndpointRequired && !endpointParamPreset" class="field-hint">
             {{ t("必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。") }}
           </p>
           <n-button
-            v-if="fixedEndpointRequired && endpointTemplate"
+            v-if="fixedEndpointRequired && endpointTemplate && !endpointParamPreset"
             attr-type="button"
             size="small"
             text
@@ -104,6 +123,17 @@
             @click="insertEndpointTemplate"
           >
             {{ t("插入地址模板") }}
+          </n-button>
+          <n-button
+            v-if="endpointParamPreset"
+            attr-type="button"
+            size="small"
+            text
+            type="primary"
+            :disabled="fieldsLocked"
+            @click="toggleManualEndpoint"
+          >
+            {{ endpointParamsActive ? t("手动填写 API 地址") : t("按项目与区域填写") }}
           </n-button>
         </n-form-item>
         <n-form-item v-if="!fixedPreset" :label="t('上游协议')">
@@ -381,12 +411,17 @@ import { protocolDisplayName } from "../domain/provider-contracts.ts";
 import {
   PROVIDER_PRESETS,
   applyProviderPresetToDraft,
+  composeProviderPresetEndpoint,
   groupProviderPresetsByOffering,
   providerPresetDefaultModels,
+  providerPresetEndpointDefaults,
+  providerPresetEndpointParams,
   providerPresetEndpointPlaceholder,
+  providerPresetEndpointValuesFromUrl,
   providerPresetImportPublicName,
   providerPresetModelDiscoveryEnabled,
   providerPresetNote,
+  providerPresetNoteText,
   providerPresetRoutesForEndpoint,
   resolveEditPreset,
 } from "../domain/provider-presets.ts";
@@ -615,6 +650,44 @@ const endpointTemplate = computed(() => {
   return providerPresetEndpointPlaceholder(preset);
 });
 /**
+ * Presets that declare an address template: the user types the parameters and
+ * the address is composed for them. Create mode reads the picker, edit and
+ * resume modes read the persisted provenance, so an existing Vertex provider
+ * keeps the parameter form instead of degrading to a pasted URL.
+ */
+const endpointParamPreset = computed(() => {
+  const candidates = [
+    selectedPreset.value,
+    templatePreset.value,
+    isResume.value
+      ? PROVIDER_PRESETS.find((preset) => preset.id === draft.value.preset_id) ?? null
+      : null,
+  ];
+  for (const preset of candidates) {
+    if (preset && providerPresetEndpointParams(preset).length > 0) return preset;
+  }
+  return null;
+});
+/** Typed template parameters plus their localized labels, in display order. */
+const endpointParamValues = ref<Record<string, string>>({});
+/** True when the user asked for the raw address field instead of parameters. */
+const manualEndpoint = ref(false);
+const endpointParamRows = computed(() => {
+  const preset = endpointParamPreset.value;
+  if (!preset) return [];
+  return providerPresetEndpointParams(preset).map((param) => ({
+    param,
+    label: providerPresetNoteText(param.label, locale.value),
+    hint: param.hint ? providerPresetNoteText(param.hint, locale.value) : "",
+    value: endpointParamValues.value[param.key] ?? "",
+    set: (value: string) => setEndpointParam(param.key, value),
+  }));
+});
+/** The parameter form is active unless the raw field was explicitly requested. */
+const endpointParamsActive = computed(
+  () => Boolean(endpointParamPreset.value) && !manualEndpoint.value,
+);
+/**
  * Seeded fixed rows keep the model editor and model test behind More
  * settings; without seeds the editor stays visible so save validation is
  * never a hidden blocker. A preset whose address the user must paste keeps
@@ -682,7 +755,7 @@ const destinationDisplay = computed(() => {
   return destinationOriginFromEndpointUrl(url) || url || t("未设置");
 });
 const endpointPlaceholder = computed(() => {
-  const preset = selectedPreset.value;
+  const preset = endpointParamPreset.value ?? selectedPreset.value;
   if (preset && !preset.endpointUrl) {
     const placeholder = providerPresetEndpointPlaceholder(preset);
     if (placeholder) return placeholder;
@@ -719,6 +792,47 @@ const authOptions = computed(() => DYNAMIC_AUTH_KINDS.map((value) => ({
 function insertEndpointTemplate(): void {
   if (fieldsLocked.value || !endpointTemplate.value) return;
   draft.value.endpoint_url = endpointTemplate.value;
+}
+
+/** Composes the address from the parameter form; a partial address stays empty. */
+function applyEndpointParams(): void {
+  const preset = endpointParamPreset.value;
+  if (!preset) return;
+  draft.value.endpoint_url = composeProviderPresetEndpoint(preset, endpointParamValues.value);
+}
+
+function setEndpointParam(key: string, value: string): void {
+  if (fieldsLocked.value) return;
+  endpointParamValues.value = { ...endpointParamValues.value, [key]: value };
+  applyEndpointParams();
+}
+
+/**
+ * Rebuilds the parameter form for the current preset and address. An exact
+ * template instance fills in, a custom address switches to the raw field, and
+ * an empty address starts from the declared defaults.
+ */
+function syncEndpointParams(): void {
+  manualEndpoint.value = false;
+  const preset = endpointParamPreset.value;
+  endpointParamValues.value = preset ? providerPresetEndpointDefaults(preset) : {};
+  if (!preset) return;
+  const parsed = providerPresetEndpointValuesFromUrl(preset, draft.value.endpoint_url);
+  if (parsed) {
+    endpointParamValues.value = parsed;
+    return;
+  }
+  if (draft.value.endpoint_url.trim()) manualEndpoint.value = true;
+}
+
+function toggleManualEndpoint(): void {
+  if (fieldsLocked.value || !endpointParamPreset.value) return;
+  if (!manualEndpoint.value) {
+    manualEndpoint.value = true;
+    return;
+  }
+  syncEndpointParams();
+  applyEndpointParams();
 }
 
 let formWasVisible = false;
@@ -803,6 +917,7 @@ watch(
       }
       void captureFormSnapshot();
     }
+    syncEndpointParams();
   },
   { immediate: true },
 );
@@ -844,6 +959,7 @@ function onPresetChange(value: string): void {
   discoveryInfo.value = "";
   discoveredModels.value = [];
   selectedDiscovery.value = [];
+  syncEndpointParams();
 }
 
 function addMapping(): void {

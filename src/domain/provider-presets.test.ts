@@ -9,7 +9,11 @@ import {
   inferMappingPresetPrefix,
   normalizeProviderPresetEndpoint,
   parseProviderPresets,
+  composeProviderPresetEndpoint,
+  providerPresetEndpointDefaults,
+  providerPresetEndpointParams,
   providerPresetEndpointPlaceholder,
+  providerPresetEndpointValuesFromUrl,
   providerPresetImportPublicName,
   providerPresetModelDiscoveryEnabled,
   providerPresetRoutesForEndpoint,
@@ -642,6 +646,138 @@ test("Vertex public model names keep the preset prefix and the publisher id", ()
   assert.ok(vertex, "the vertex-ai preset must ship");
   assert.deepEqual(providerPresetDefaultModels(vertex), ["google/gemini-2.5-flash"]);
   assert.equal(providerPresetModelDiscoveryEnabled(vertex), false);
+});
+
+test("an address template composes the full endpoint from its parameters", () => {
+  const vertex = PROVIDER_PRESETS.find((preset) => preset.id === "vertex-ai");
+  assert.ok(vertex, "the vertex-ai preset must ship");
+  // The template owns the address, so the user types two values instead of
+  // pasting a 130-character path; the shipped placeholder stays display-only.
+  assert.deepEqual(
+    providerPresetEndpointParams(vertex).map((param) => param.key),
+    ["project", "location"],
+  );
+  assert.deepEqual(providerPresetEndpointDefaults(vertex), {
+    project: "",
+    location: "global",
+  });
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project-id", location: "global" }),
+    "https://aiplatform.googleapis.com/v1/projects/my-project-id/locations/global/endpoints/openapi/chat/completions",
+  );
+  // A regional location prefixes the host, which is why the host is derived
+  // from the parameter instead of being typed next to it.
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project-id", location: "us-central1" }),
+    "https://us-central1-aiplatform.googleapis.com/v1/projects/my-project-id/locations/us-central1/endpoints/openapi/chat/completions",
+  );
+});
+
+test("a missing or malformed parameter never yields a partial address", () => {
+  const vertex = PROVIDER_PRESETS.find((preset) => preset.id === "vertex-ai");
+  assert.ok(vertex);
+  assert.equal(composeProviderPresetEndpoint(vertex, { project: "", location: "global" }), "");
+  assert.equal(composeProviderPresetEndpoint(vertex, { project: "   ", location: "global" }), "");
+  // A parameter with a declared default falls back to it, so clearing the
+  // location keeps the documented global address instead of blocking the save.
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project-id" }),
+    "https://aiplatform.googleapis.com/v1/projects/my-project-id/locations/global/endpoints/openapi/chat/completions",
+  );
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project-id", location: " " }),
+    "https://aiplatform.googleapis.com/v1/projects/my-project-id/locations/global/endpoints/openapi/chat/completions",
+  );
+  // The project number is the documented trap: digits only is not a project ID.
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "123456789012", location: "global" }),
+    "",
+  );
+  // No value may add path segments, credentials, or a query string.
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project/../other", location: "global" }),
+    "",
+  );
+  assert.equal(
+    composeProviderPresetEndpoint(vertex, { project: "my-project-id", location: "global?x=1" }),
+    "",
+  );
+});
+
+test("a stored address round-trips into parameters, and only its own shape does", () => {
+  const vertex = PROVIDER_PRESETS.find((preset) => preset.id === "vertex-ai");
+  assert.ok(vertex);
+  const values = { project: "my-project-id", location: "us-central1" };
+  const composed = composeProviderPresetEndpoint(vertex, values);
+  assert.deepEqual(providerPresetEndpointValuesFromUrl(vertex, composed), values);
+  // A proxy or any other host is not an instance of the template: the editor
+  // keeps the raw address instead of guessing parameters.
+  assert.equal(
+    providerPresetEndpointValuesFromUrl(
+      vertex,
+      "https://proxy.example.com/v1/projects/my-project-id/locations/us-central1/endpoints/openapi/chat/completions",
+    ),
+    null,
+  );
+  // A global host with a regional path is a misconfiguration, not a value set.
+  assert.equal(
+    providerPresetEndpointValuesFromUrl(
+      vertex,
+      "https://aiplatform.googleapis.com/v1/projects/my-project-id/locations/us-central1/endpoints/openapi/chat/completions",
+    ),
+    null,
+  );
+  assert.equal(providerPresetEndpointValuesFromUrl(vertex, ""), null);
+  assert.equal(providerPresetEndpointValuesFromUrl(samplePreset(), composed), null);
+});
+
+test("an address template keeps the contractual shape", () => {
+  const templated = PROVIDER_PRESETS.filter((preset) => preset.endpointTemplate);
+  assert.ok(templated.length > 0, "at least one preset must compose its address");
+  for (const preset of templated) {
+    assert.equal(preset.endpointUrl, "", preset.id);
+    assert.notEqual(providerPresetEndpointPlaceholder(preset), "", preset.id);
+    // Every parameter's own example composes a usable address, so a preset can
+    // never ship a template that its declared examples cannot satisfy.
+    const values = providerPresetEndpointDefaults(preset);
+    for (const param of providerPresetEndpointParams(preset)) {
+      values[param.key] = param.placeholder ?? param.default ?? "example";
+    }
+    assert.notEqual(composeProviderPresetEndpoint(preset, values), "", preset.id);
+  }
+  const templated3 = {
+    endpointUrl: "",
+    endpointTemplate: "https://api.example.com/v1/{region}/chat/completions",
+    endpointParams: [{ key: "region", label: { en: "Region", zh: "区域" }, placeholder: "global" }],
+  };
+  assert.deepEqual(providerPresetShapeIssues(samplePreset(templated3)), []);
+  // A token without a parameter, a parameter without a token, a derived host
+  // without its location, a fixed endpoint next to a template, and an
+  // unparsable pattern are all rejected.
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    endpointUrl: "",
+    endpointTemplate: "https://api.example.com/v1/{region}/chat/completions",
+  })).length > 0);
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    ...templated3,
+    endpointTemplate: "https://api.example.com/v1/chat/completions",
+  })).length > 0);
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    ...templated3,
+    endpointTemplate: "https://{location-host}/v1/projects/{region}/chat/completions",
+  })).length > 0);
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    ...templated3,
+    endpointUrl: "https://api.example.com/v1/chat/completions",
+  })).length > 0);
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    ...templated3,
+    endpointParams: [{ key: "region", label: { en: "Region", zh: "区域" }, pattern: "^[a-z" }],
+  })).length > 0);
+  assert.ok(providerPresetShapeIssues(samplePreset({
+    ...templated3,
+    endpointParams: [{ key: "region", label: { en: "Region", zh: "区域" }, pattern: "^.+$" }],
+  })).length > 0);
 });
 
 test("every empty-endpoint preset exposes a placeholder and a localized caveat", () => {

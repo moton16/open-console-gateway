@@ -89,10 +89,34 @@
     "docsUrl": "https://cloud.google.com/vertex-ai/generative-ai/docs/start/openai",
     "websiteUrl": "https://console.cloud.google.com/vertex-ai",
     "note": {
-      "en": "Enter your project's OpenAI-compatible chat endpoint; the full path must contain /endpoints/openapi/. Use an API Key bound to the Agent Platform API. Express keys allow roughly 10 requests per minute. Upstream model IDs keep their publisher prefix, for example google/gemini-2.5-flash.",
-      "zh": "填写你项目的 OpenAI 兼容 chat 端点，完整路径必须含 /endpoints/openapi/；使用绑定 Agent Platform API 的 API Key。Express 档位约 10 请求/分钟。上游模型 ID 必须保留 publisher 前缀，例如 google/gemini-2.5-flash。"
+      "en": "Enter your GCP project ID and location; OCG composes the OpenAI-compatible chat address for you. Use an API Key bound to the Agent Platform API. Express keys allow roughly 10 requests per minute. Upstream model IDs keep their publisher prefix, for example google/gemini-2.5-flash.",
+      "zh": "填写 GCP 项目 ID 与区域，OCG 会自动拼出 OpenAI 兼容 chat 地址；使用绑定 Agent Platform API 的 API Key。Express 档位约 10 请求/分钟。上游模型 ID 必须保留 publisher 前缀，例如 google/gemini-2.5-flash。"
     },
     "endpointPlaceholder": "https://aiplatform.googleapis.com/v1/projects/YOUR-PROJECT/locations/YOUR-LOCATION/endpoints/openapi/chat/completions",
+    "endpointTemplate": "https://{location-host}/v1/projects/{project}/locations/{location}/endpoints/openapi/chat/completions",
+    "endpointParams": [
+      {
+        "key": "project",
+        "label": { "en": "GCP project ID", "zh": "GCP 项目 ID" },
+        "hint": {
+          "en": "Lowercase letters, digits and dashes, 6-30 characters. This is the project ID, not the project number.",
+          "zh": "小写字母、数字与连字符，6–30 个字符；填项目 ID，不是项目编号。"
+        },
+        "placeholder": "my-project-id",
+        "pattern": "^[a-z][a-z0-9-]{4,28}[a-z0-9]$"
+      },
+      {
+        "key": "location",
+        "label": { "en": "Location", "zh": "区域" },
+        "hint": {
+          "en": "Express keys normally use global; any other region prefixes the host name.",
+          "zh": "Express 档位通常填 global；其他区域会为主机名加区域前缀。"
+        },
+        "placeholder": "global",
+        "default": "global",
+        "pattern": "^[a-z0-9][a-z0-9-]*$"
+      }
+    ],
     "modelDiscovery": false
   },
   {

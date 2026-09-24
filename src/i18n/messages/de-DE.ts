@@ -708,4 +708,7 @@ export const deDEMessages = {
   "账号绑定已变更": "Kontobindung hat sich geändert",
   "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Geben Sie die vollständige Endpunktadresse aus der Anbieterdokumentation ein; sie darf keine Query-Zeichenfolge enthalten.",
   "插入地址模板": "Adressvorlage einfügen",
+  "手动填写 API 地址": "Adresse manuell eingeben",
+  "按项目与区域填写": "Nach Projekt und Region ausfüllen",
+  "参数不完整或格式有误，地址尚未生成。": "Die Parameter sind unvollständig oder fehlerhaft, daher wurde die Adresse noch nicht erzeugt.",
 } satisfies Messages;
