@@ -706,4 +706,6 @@ export const esESMessages = {
   "重新生成后找不到对应 Key，刷新后重试": "No se encontró la Key tras regenerarla. Actualiza y reintenta",
   "本月已用": "Usado este mes",
   "账号绑定已变更": "El vínculo de la cuenta cambió",
+  "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Introduce la dirección de endpoint completa de la documentación del proveedor; no puede incluir una cadena de consulta.",
+  "插入地址模板": "Insertar plantilla de dirección",
 } satisfies Messages;

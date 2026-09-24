@@ -552,6 +552,8 @@ export const enUSMessages = {
   "协议仅用于从平台账号推导 Endpoint，对账号下全部模型统一生效。": "The protocol only derives the endpoint from the platform account and applies to every model on this account.",
   "Endpoint 与协议路径由平台账号 {name} 托管；账号只保存名称、Key 与模型映射。": "The endpoint and protocol path are managed by platform account {name}; the account only stores a name, key, and model mappings.",
   "推荐填写不带 /v1 的 API 根地址；OCG 会自动补全 /v1 和协议路径。已带 /v1 时不会重复添加。": "Use the API root without /v1; OCG appends /v1 and the protocol path. An existing /v1 is not duplicated.",
+  "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Enter the full endpoint address from the provider's documentation; it must not contain a query string.",
+  "插入地址模板": "Insert address template",
   "https://api.example.com/v1": "https://api.example.com/v1",
   "上游协议": "Upstream protocol",
   "获取模型": "Fetch models",

@@ -188,7 +188,8 @@ credentials, query strings, and fragments are rejected. The gateway
 rejects redirects and does not forward dashboard or client authentication.
 A model or endpoint override to another Origin does not inherit the stored Key.
 Each configurable HTTP route sends the authentication header saved for that route:
-`Authorization: Bearer <key>`, `x-api-key: <key>`, or `api-key: <key>`.
+`Authorization: Bearer <key>`, `x-api-key: <key>`, `api-key: <key>`, or the
+Google-style `x-goog-api-key: <key>`; a route may also store no authentication.
 A 401 does not retry with a different auth header. Root and
 `/v1` bases resolve through the same rule for discovery, verification, and
 production inference; legacy complete Endpoints are requested verbatim.

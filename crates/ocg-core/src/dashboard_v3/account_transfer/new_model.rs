@@ -1300,6 +1300,7 @@ fn customs_from_destinations(
                 ocg_domain::destination::AuthScheme::Bearer => DynamicAuthKind::Bearer,
                 ocg_domain::destination::AuthScheme::XApiKey => DynamicAuthKind::XApiKey,
                 ocg_domain::destination::AuthScheme::ApiKey => DynamicAuthKind::ApiKey,
+                ocg_domain::destination::AuthScheme::XGoogApiKey => DynamicAuthKind::XGoogApiKey,
                 ocg_domain::destination::AuthScheme::None => DynamicAuthKind::None,
             },
             mappings: models.clone(),
@@ -1360,6 +1361,7 @@ fn dynamics_from_destinations(
             ocg_domain::destination::AuthScheme::XApiKey => DynamicAuthKind::XApiKey,
             ocg_domain::destination::AuthScheme::ApiKey => DynamicAuthKind::ApiKey,
             ocg_domain::destination::AuthScheme::Bearer => DynamicAuthKind::Bearer,
+            ocg_domain::destination::AuthScheme::XGoogApiKey => DynamicAuthKind::XGoogApiKey,
         };
         let mappings = destination
             .catalog

@@ -39,6 +39,8 @@ pub enum UpstreamAuth {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    XGoogApiKey,
     None,
 }
 

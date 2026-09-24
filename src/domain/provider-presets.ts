@@ -11,7 +11,10 @@ import type { AuthSchemeDto } from "../api/generated/dashboard-v4.ts";
 
 export type ProviderPresetCategory = "official" | "aggregator";
 export type ProviderPresetOffering = "plan" | "api";
-export type ProviderPresetAuthKind = Extract<DynamicAuthKind, "bearer" | "x-api-key" | "api-key">;
+export type ProviderPresetAuthKind = Extract<
+  DynamicAuthKind,
+  "bearer" | "x-api-key" | "api-key" | "x-goog-api-key"
+>;
 
 export interface ProviderPreset {
   id: string;
@@ -110,13 +113,20 @@ const PRESET_PROTOCOLS: readonly DynamicUpstreamProtocol[] = [
   "responses",
   "messages",
 ];
-const PRESET_AUTH_KINDS: readonly ProviderPresetAuthKind[] = ["bearer", "x-api-key", "api-key"];
+const PRESET_AUTH_KINDS: readonly ProviderPresetAuthKind[] = [
+  "bearer",
+  "x-api-key",
+  "api-key",
+  "x-goog-api-key",
+];
 const PRESET_ROUTE_AUTH: Record<string, AuthSchemeDto> = {
   bearer: "bearer",
   "x-api-key": "x_api_key",
   x_api_key: "x_api_key",
   "api-key": "api_key",
   api_key: "api_key",
+  "x-goog-api-key": "x_goog_api_key",
+  x_goog_api_key: "x_goog_api_key",
   none: "none",
 };
 
@@ -155,7 +165,7 @@ export function providerPresetShapeIssues(raw: unknown, index = 0): string[] {
     issues.push(`${where}: protocol must be chat_completions, responses, or messages`);
   }
   if (!PRESET_AUTH_KINDS.includes(row.authKind as ProviderPresetAuthKind)) {
-    issues.push(`${where}: authKind must be bearer, x-api-key, or api-key`);
+    issues.push(`${where}: authKind must be bearer, x-api-key, api-key, or x-goog-api-key`);
   }
   if (!isHttpUrl(row.docsUrl)) issues.push(`${where}: docsUrl is not an http(s) URL`);
   if (!isHttpUrl(row.websiteUrl)) issues.push(`${where}: websiteUrl is not an http(s) URL`);
@@ -227,7 +237,9 @@ function providerPresetProtocolRouteIssues(raw: unknown, where: string): string[
       issues.push(`${routeWhere}: endpointUrl is not an http(s) URL`);
     }
     if (PRESET_ROUTE_AUTH[String(route.authScheme)] === undefined) {
-      issues.push(`${routeWhere}: authScheme must be bearer, x-api-key, api-key, or none`);
+      issues.push(
+        `${routeWhere}: authScheme must be bearer, x-api-key, api-key, x-goog-api-key, or none`,
+      );
     }
   }
   return issues;
@@ -401,8 +413,12 @@ export function providerPresetImportPublicName(
   return presetId ? `${presetId}/${upstreamModelId}` : upstreamModelId;
 }
 
+export function providerPresetNoteText(note: { en: string; zh: string }, locale: string): string {
+  return locale.toLocaleLowerCase().startsWith("zh") ? note.zh : note.en;
+}
+
 export function providerPresetNote(preset: ProviderPreset, locale: string): string {
-  return locale.toLocaleLowerCase().startsWith("zh") ? preset.note.zh : preset.note.en;
+  return providerPresetNoteText(preset.note, locale);
 }
 
 /**

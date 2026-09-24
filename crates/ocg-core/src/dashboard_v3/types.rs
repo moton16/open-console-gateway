@@ -1278,6 +1278,8 @@ pub enum AccountAuthScheme {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`).
+    XGoogApiKey,
 }
 
 impl From<UpstreamAuthScheme> for AccountAuthScheme {
@@ -1286,6 +1288,7 @@ impl From<UpstreamAuthScheme> for AccountAuthScheme {
             UpstreamAuthScheme::Bearer => Self::Bearer,
             UpstreamAuthScheme::XApiKey => Self::XApiKey,
             UpstreamAuthScheme::ApiKey => Self::ApiKey,
+            UpstreamAuthScheme::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }
@@ -1296,6 +1299,7 @@ impl From<AccountAuthScheme> for UpstreamAuthScheme {
             AccountAuthScheme::Bearer => Self::Bearer,
             AccountAuthScheme::XApiKey => Self::XApiKey,
             AccountAuthScheme::ApiKey => Self::ApiKey,
+            AccountAuthScheme::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }
@@ -2974,6 +2978,8 @@ pub enum ProviderDefinitionAuthKind {
     XApiKey,
     #[serde(rename = "api-key")]
     ApiKey,
+    #[serde(rename = "x-goog-api-key")]
+    XGoogApiKey,
     None,
 }
 
@@ -2983,6 +2989,7 @@ impl From<ocg_domain::dynamic::DynamicAuthKind> for ProviderDefinitionAuthKind {
             ocg_domain::dynamic::DynamicAuthKind::Bearer => Self::Bearer,
             ocg_domain::dynamic::DynamicAuthKind::XApiKey => Self::XApiKey,
             ocg_domain::dynamic::DynamicAuthKind::ApiKey => Self::ApiKey,
+            ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey => Self::XGoogApiKey,
             ocg_domain::dynamic::DynamicAuthKind::None => Self::None,
         }
     }
@@ -2994,6 +3001,7 @@ impl From<ProviderDefinitionAuthKind> for ocg_domain::dynamic::DynamicAuthKind {
             ProviderDefinitionAuthKind::Bearer => Self::Bearer,
             ProviderDefinitionAuthKind::XApiKey => Self::XApiKey,
             ProviderDefinitionAuthKind::ApiKey => Self::ApiKey,
+            ProviderDefinitionAuthKind::XGoogApiKey => Self::XGoogApiKey,
             ProviderDefinitionAuthKind::None => Self::None,
         }
     }

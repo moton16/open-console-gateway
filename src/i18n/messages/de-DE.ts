@@ -706,4 +706,6 @@ export const deDEMessages = {
   "重新生成后找不到对应 Key，刷新后重试": "Der Key wurde nach dem Regenerieren nicht gefunden. Neu laden und erneut versuchen",
   "本月已用": "Diesen Monat verbraucht",
   "账号绑定已变更": "Kontobindung hat sich geändert",
+  "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Geben Sie die vollständige Endpunktadresse aus der Anbieterdokumentation ein; sie darf keine Query-Zeichenfolge enthalten.",
+  "插入地址模板": "Adressvorlage einfügen",
 } satisfies Messages;

@@ -308,6 +308,7 @@ const authOptions = computed(() => ([
   { value: "bearer", label: "Bearer" },
   { value: "x_api_key", label: "x-api-key" },
   { value: "api_key", label: "api-key" },
+  { value: "x_goog_api_key", label: "x-goog-api-key" },
   { value: "none", label: t("无鉴权") },
 ]));
 const routeModeOptions = computed(() => [

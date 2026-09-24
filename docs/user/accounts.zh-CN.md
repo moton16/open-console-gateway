@@ -101,7 +101,7 @@ Custom API 是已上线的受信管理员目的地。**供应商** 编辑映射�
 受信管理员可配置公网、局域网或回环 HTTP / HTTPS 源。元数据、链路本地以及不透明 IPv4 把戏主机（例如
 `169.254.169.254` 或 `metadata.google.internal`）会被拒绝。URL
 内嵌凭据、query 与 fragment 会被拒绝。Gateway 拒绝重定向，也不会转发 dashboard 或客户端鉴权。
-模型或 Endpoint 覆盖到另一 Origin 时，不会自动继承已保存的 Key。可配置 HTTP 路由按已保存的鉴权方式发送 `Authorization: Bearer <key>`、`x-api-key: <key>` 或 `api-key: <key>`。401 不会换用另一种鉴权头重试。根地址和 `/v1` 基址在模型发现、验证与正式推理中采用同一补全规则；历史完整 Endpoint 仍原样请求。Custom HTTP 使用同一套进程级 Direct / Manual / Auto 代理策略；连接与请求超时按配置的连接超时夹到
+模型或 Endpoint 覆盖到另一 Origin 时，不会自动继承已保存的 Key。可配置 HTTP 路由按已保存的鉴权方式发送 `Authorization: Bearer <key>`、`x-api-key: <key>`、`api-key: <key>` 或 Google 风格的 `x-goog-api-key: <key>`，路由也可以保存无鉴权。401 不会换用另一种鉴权头重试。根地址和 `/v1` 基址在模型发现、验证与正式推理中采用同一补全规则；历史完整 Endpoint 仍原样请求。Custom HTTP 使用同一套进程级 Direct / Manual / Auto 代理策略；连接与请求超时按配置的连接超时夹到
 5–60 秒。
 
 所有 ready 账号卡片使用同一个 **测试连接** 动作。弹窗提供可搜索的模型表格、单模型测试与顺序执行的 **测试全部**。每次测试只通过当前这一账号及其当前有效协议发送一次最小真实请求。测试留在该账号上：不切换其他账号，不走 Gateway fallback，不改变启停、冷却或额度恢复，也不写入 Provider 协议证据。测试不是额度恢复试探。结果只保留在当前弹窗；关闭后不再派发排队中的测试，已经发出的请求可按现有超时结束。测试可能消耗供应商额度。Provider 页的测试仍是独立的低频控制面，用于新增 Provider 模型时验证模型/协议能力，并可按其语义使用符合条件的账号回退。

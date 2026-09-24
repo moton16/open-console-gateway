@@ -228,6 +228,30 @@ fn echoed_limit_text_outside_message_is_not_account_evidence() {
     assert!(!f.decide().wait_for_recovery);
 }
 
+/// G0 (2026-09-24) captured the live Vertex 429: a `RESOURCE_EXHAUSTED` body
+/// with no timing detail at all, which is the documented shape minus the
+/// optional `RetryInfo` part. Neither form may move the wait, because quota is
+/// never inferred from upstream prose; only a real Retry-After header counts.
+#[test]
+fn google_429_body_never_supplies_the_retry_instant() {
+    const VERTEX_LIVE: &str = r#"[{"error":{"code":429,"message":"Resource exhausted. Please try again later. Please refer to https://cloud.google.com/vertex-ai/generative-ai/docs/error-code-429 for more details.","status":"RESOURCE_EXHAUSTED"}}]"#;
+    const VERTEX_DOCUMENTED: &str = r#"[{"error":{"code":429,"message":"Resource exhausted.","status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"9s"}]}}]"#;
+    for body in [VERTEX_LIVE, VERTEX_DOCUMENTED] {
+        let f = rate(ErrorProfile::GenericHttp, body, None);
+        assert_eq!(f.cause, Cause::Transient, "{body}");
+        assert_eq!(f.retry_not_before, None, "{body}");
+        assert_eq!(f.scope, Scope::Unspecified, "{body}");
+        assert!(f.decide().persist_reset.is_none(), "{body}");
+        assert!(!f.decide().wait_for_recovery, "{body}");
+    }
+    // The header is the only upstream timing this gateway honors.
+    let f = rate(ErrorProfile::GenericHttp, VERTEX_LIVE, Some("9"));
+    assert_eq!(
+        f.retry_not_before,
+        Some(RetryHint::Until(now() + Duration::seconds(9)))
+    );
+}
+
 #[test]
 fn temporary_backoff_uses_valid_retry_after_or_thirty_seconds() {
     use super::decode::temporary_429_deadline;

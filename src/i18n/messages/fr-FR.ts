@@ -707,4 +707,6 @@ export const frFRMessages = {
   "重新生成后找不到对应 Key，刷新后重试": "Key introuvable après régénération. Actualisez puis réessayez",
   "本月已用": "Utilisé ce mois",
   "账号绑定已变更": "La liaison du compte a changé",
+  "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Saisissez l'adresse complète du point de terminaison indiquée par le fournisseur ; elle ne peut pas contenir de chaîne de requête.",
+  "插入地址模板": "Insérer le modèle d'adresse",
 } satisfies Messages;

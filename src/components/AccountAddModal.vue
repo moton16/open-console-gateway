@@ -131,6 +131,8 @@
           </div>
         </header>
 
+        <p v-if="detailNote" class="account-add-detail__note">{{ detailNote }}</p>
+
         <p v-if="detail.kind === 'family' || detail.kind === 'preset' || detail.kind === 'manual'" class="account-add-outcome">
           {{ t("可先存草稿，或一次建好供应商和第一个账号。草稿在供应商页继续。") }}
         </p>
@@ -257,7 +259,7 @@ import {
   DatabaseOutlined,
   SwapOutlined,
 } from "@vicons/antd";
-import { t } from "../i18n/index.ts";
+import { locale, t } from "../i18n/index.ts";
 import { useLocalizedModalCloseLabel } from "../utils/modal-close-label.ts";
 import { dashboardErrorDetail } from "../utils/errors.ts";
 import {
@@ -280,7 +282,11 @@ import {
   MANUAL_CHOOSER_OPTION_ID,
 } from "../domain/account-add-chooser.ts";
 import { PROVIDER_FAMILIES, familyOf, type ProviderFamily } from "../domain/provider-families.ts";
-import { PROVIDER_PRESETS, type ProviderPreset } from "../domain/provider-presets.ts";
+import {
+  PROVIDER_PRESETS,
+  providerPresetNoteText,
+  type ProviderPreset,
+} from "../domain/provider-presets.ts";
 import { isDynamicCatalogEntry } from "../domain/dynamic-provider.ts";
 import { PLAN_CREATE_DISABLED_REASON_KEYS } from "../domain/plans.ts";
 import { providerApi } from "../api/providers.ts";
@@ -471,6 +477,13 @@ const detail = computed(() => {
   if (!selected.value) return null;
   return describeChooserSelection(selected.value, currentPreset.value ?? undefined);
 });
+/**
+ * Preset-authored caveat (key class, rate limit, naming rules) shown before
+ * the credential form, so a user learns the requirement before failing.
+ */
+const detailNote = computed(() => (
+  detail.value?.note ? providerPresetNoteText(detail.value.note, locale.value) : ""
+));
 
 /**
  * Brand provenance for a saved user-defined Provider comes from its persisted
@@ -879,6 +892,13 @@ function variantHost(preset: ProviderPreset): string {
   display: flex;
   gap: var(--ocg-space-md);
   font-size: var(--ocg-font-xs);
+}
+
+.account-add-detail__note {
+  margin: 0;
+  color: var(--ocg-muted);
+  font-size: var(--ocg-font-sm);
+  line-height: 1.5;
 }
 
 .account-add-detail__actions {

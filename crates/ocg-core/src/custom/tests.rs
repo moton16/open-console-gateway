@@ -396,6 +396,49 @@ fn verification_requires_the_requested_protocol_and_rejects_false_success() {
 }
 
 #[test]
+fn verification_accepts_a_google_style_choice_that_omits_message() {
+    // Measured 2026-09-24 against `google/gemini-2.5-flash` through Google's
+    // OpenAI-compatible surface: when the minimal probe request spends its whole
+    // budget on reasoning, the choice carries a finish reason and no message.
+    let google =
+        br#"{"id":"x","object":"chat.completion","choices":[{"finish_reason":"length","index":0,"logprobs":null}]}"#;
+    assert!(
+        prove_verified_protocol_response(
+            StatusCode::OK,
+            google,
+            UpstreamProtocolKind::ChatCompletions
+        )
+        .is_ok()
+    );
+    assert!(
+        prove_verified_protocol_response(StatusCode::OK, google, UpstreamProtocolKind::Responses)
+            .is_err()
+    );
+
+    let cases: [&[u8]; 4] = [
+        // Neither a message nor a settled finish reason proves anything.
+        br#"{"choices":[{"index":0}]}"#,
+        br#"{"choices":[{"finish_reason":null,"index":0}]}"#,
+        // A non-object message is still a protocol mismatch.
+        br#"{"choices":[{"message":"ok","finish_reason":"stop"}]}"#,
+        // A null message without a finish reason stays invalid.
+        br#"{"choices":[{"message":null}]}"#,
+    ];
+    for invalid in cases {
+        assert!(
+            prove_verified_protocol_response(
+                StatusCode::OK,
+                invalid,
+                UpstreamProtocolKind::ChatCompletions
+            )
+            .is_err(),
+            "{}",
+            String::from_utf8_lossy(invalid)
+        );
+    }
+}
+
+#[test]
 fn verification_contract_identity_covers_revision_key_config_and_order() {
     let config = AccountCustomConfig {
         account_id: "acc".into(),

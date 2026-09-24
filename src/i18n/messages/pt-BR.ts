@@ -707,4 +707,6 @@ export const ptBRMessages = {
   "重新生成后找不到对应 Key，刷新后重试": "Key não encontrada após regenerar. Atualize e tente novamente",
   "本月已用": "Usado neste mês",
   "账号绑定已变更": "O vínculo da conta mudou",
+  "必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。": "Informe o endereço de endpoint completo da documentação do provedor; ele não pode conter string de consulta.",
+  "插入地址模板": "Inserir modelo de endereço",
 } satisfies Messages;

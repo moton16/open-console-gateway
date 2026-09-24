@@ -696,6 +696,19 @@ fn oversized_verification_body() -> CustomVerifyFailure {
     }
 }
 
+/// One Chat Completions choice identifies the protocol through its `message`
+/// object. Google's OpenAI-compatible surface drops that field when a one-token
+/// probe leaves the model no room to emit content, so a choice carrying only a
+/// `finish_reason` still proves the envelope; anything else stays invalid.
+fn chat_completion_choice_matches(choice: &Value) -> bool {
+    match choice.get("message") {
+        Some(message) if !message.is_null() => message.is_object(),
+        _ => choice
+            .get("finish_reason")
+            .is_some_and(|reason| reason.is_string()),
+    }
+}
+
 pub(crate) fn prove_verified_protocol_response(
     status: StatusCode,
     body: &[u8],
@@ -726,10 +739,7 @@ pub(crate) fn prove_verified_protocol_response(
             .get("choices")
             .and_then(Value::as_array)
             .is_some_and(|choices| {
-                !choices.is_empty()
-                    && choices
-                        .iter()
-                        .all(|choice| choice.get("message").is_some_and(Value::is_object))
+                !choices.is_empty() && choices.iter().all(chat_completion_choice_matches)
             }),
         UpstreamProtocolKind::Responses => {
             parsed.get("object").and_then(Value::as_str) == Some("response")

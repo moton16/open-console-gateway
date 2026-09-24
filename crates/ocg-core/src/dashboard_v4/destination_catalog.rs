@@ -90,6 +90,7 @@ pub(super) async fn refresh(
         AuthScheme::Bearer => Some(crate::provider::UpstreamAuthScheme::Bearer),
         AuthScheme::XApiKey => Some(crate::provider::UpstreamAuthScheme::XApiKey),
         AuthScheme::ApiKey => Some(crate::provider::UpstreamAuthScheme::ApiKey),
+        AuthScheme::XGoogApiKey => Some(crate::provider::UpstreamAuthScheme::XGoogApiKey),
         AuthScheme::None => None,
     };
     let discovered = crate::custom::discover_models_with_auth(&config, &input, auth, &key)
@@ -433,6 +434,7 @@ pub(super) async fn test_model(
         AuthScheme::Bearer => Some(crate::provider::UpstreamAuthScheme::Bearer),
         AuthScheme::XApiKey => Some(crate::provider::UpstreamAuthScheme::XApiKey),
         AuthScheme::ApiKey => Some(crate::provider::UpstreamAuthScheme::ApiKey),
+        AuthScheme::XGoogApiKey => Some(crate::provider::UpstreamAuthScheme::XGoogApiKey),
         AuthScheme::None => None,
     };
     let result =

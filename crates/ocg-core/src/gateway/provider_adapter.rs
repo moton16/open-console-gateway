@@ -307,6 +307,7 @@ fn http_auth(kind: ocg_domain::dynamic::DynamicAuthKind) -> UpstreamAuth {
         ocg_domain::dynamic::DynamicAuthKind::Bearer => UpstreamAuth::Bearer,
         ocg_domain::dynamic::DynamicAuthKind::XApiKey => UpstreamAuth::XApiKey,
         ocg_domain::dynamic::DynamicAuthKind::ApiKey => UpstreamAuth::ApiKey,
+        ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey => UpstreamAuth::XGoogApiKey,
         ocg_domain::dynamic::DynamicAuthKind::None => UpstreamAuth::None,
     }
 }

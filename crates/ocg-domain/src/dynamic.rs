@@ -18,24 +18,40 @@ pub enum DynamicAuthKind {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    ///
+    /// Google's OpenAI-compatible surface rejects both `Authorization: Bearer
+    /// {api_key}` and `x-api-key`; it also fails the request when any
+    /// `Authorization` header is present, so this scheme must stay the only
+    /// credential header on the wire.
+    XGoogApiKey,
     None,
 }
 
 impl DynamicAuthKind {
-    pub const ALL: [Self; 4] = [Self::Bearer, Self::XApiKey, Self::ApiKey, Self::None];
+    pub const ALL: [Self; 5] = [
+        Self::Bearer,
+        Self::XApiKey,
+        Self::ApiKey,
+        Self::XGoogApiKey,
+        Self::None,
+    ];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Bearer => "bearer",
             Self::XApiKey => "x-api-key",
             Self::ApiKey => "api-key",
+            Self::XGoogApiKey => "x-goog-api-key",
             Self::None => "none",
         }
     }
 
     pub const fn credential_kind(self) -> CredentialKind {
         match self {
-            Self::Bearer | Self::XApiKey | Self::ApiKey => CredentialKind::ApiKey,
+            Self::Bearer | Self::XApiKey | Self::ApiKey | Self::XGoogApiKey => {
+                CredentialKind::ApiKey
+            }
             Self::None => CredentialKind::None,
         }
     }
@@ -57,6 +73,7 @@ impl DynamicAuthKind {
             Self::Bearer => Some(UpstreamAuthScheme::Bearer),
             Self::XApiKey => Some(UpstreamAuthScheme::XApiKey),
             Self::ApiKey => Some(UpstreamAuthScheme::ApiKey),
+            Self::XGoogApiKey => Some(UpstreamAuthScheme::XGoogApiKey),
             Self::None => None,
         }
     }
@@ -70,6 +87,7 @@ impl TryFrom<&str> for DynamicAuthKind {
             "bearer" => Ok(Self::Bearer),
             "x-api-key" | "x_api_key" => Ok(Self::XApiKey),
             "api-key" | "api_key" => Ok(Self::ApiKey),
+            "x-goog-api-key" | "x_goog_api_key" => Ok(Self::XGoogApiKey),
             "none" => Ok(Self::None),
             _ => Err(CatalogParseError::UnknownAuthScheme(value.to_string())),
         }

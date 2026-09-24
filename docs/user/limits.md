@@ -96,6 +96,15 @@ supported protocol matrix lives in
   accounts require an explicit Pro/Max/Team tier and purchase date. Accounts
   with no billing row stay routeable without a meter. An actual upstream
   `429` uses the generic cooldown/fallback path.
+- Vertex AI (Google) with an API Key on the Express tier allows roughly 10
+  requests per minute, measured live on 2026-09-24 as 9.9 successful
+  requests/minute. A coding agent that spends dozens of requests per task will
+  reach that ceiling, and the single Vertex account then enters the gateway's
+  own 30-second temporary cooldown. A retry instant suggested inside Google's
+  error body is never adopted: quota is not inferred from upstream prose, and
+  the measured `429` carried no `Retry-After` header at all. Express Keys are
+  also time-limited and the gateway has no field for that expiry, so the Key
+  must be replaced by hand once Google retires it.
 - Zen Free routing uses the card's enable switch and list position.
 - Unknown model names return `400` on every supported client format. Clients
   should send published aliases or eligible Custom IDs from authenticated

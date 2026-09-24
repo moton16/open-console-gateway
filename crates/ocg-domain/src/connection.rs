@@ -227,6 +227,8 @@ pub enum EndpointAuthScheme {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    XGoogApiKey,
     Sealed,
     None,
 }
@@ -237,6 +239,7 @@ impl From<UpstreamAuthScheme> for EndpointAuthScheme {
             UpstreamAuthScheme::Bearer => Self::Bearer,
             UpstreamAuthScheme::XApiKey => Self::XApiKey,
             UpstreamAuthScheme::ApiKey => Self::ApiKey,
+            UpstreamAuthScheme::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }

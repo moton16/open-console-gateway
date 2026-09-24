@@ -408,6 +408,7 @@ test("describeChooserSelection covers plan, family, preset, and platform details
     title: "opencode",
     tag: null,
     links: null,
+    note: null,
   });
 
   const custom = describeChooserSelection(byId(services, "custom"));
@@ -431,6 +432,9 @@ test("describeChooserSelection covers plan, family, preset, and platform details
   // Passing a non-default variant swaps the links to that preset.
   const alt = describeChooserSelection(byId(services, "family:plan:tencent"), presetById("tencent-enterprise-lite-intl"));
   assert.equal(alt.links!.docsUrl, presetById("tencent-enterprise-lite-intl").docsUrl);
+  // The preset's own caveat travels with the detail so the credential form can
+  // warn about key class / rate limits before the user fails against upstream.
+  assert.deepEqual(alt.note, presetById("tencent-enterprise-lite-intl").note);
 
   const platform = describeChooserSelection(byId(services, "platform:new_api"));
   assert.deepEqual(platform, {
@@ -439,6 +443,7 @@ test("describeChooserSelection covers plan, family, preset, and platform details
     title: "New API",
     tag: null,
     links: null,
+    note: null,
   });
 
   const manual = describeChooserSelection(byId(services, MANUAL_CHOOSER_OPTION_ID));
@@ -447,6 +452,7 @@ test("describeChooserSelection covers plan, family, preset, and platform details
   assert.equal(manual.title, "localized-manual-row");
   assert.deepEqual(manual.tag, { label: "user_defined", type: "default" });
   assert.equal(manual.links, null);
+  assert.equal(manual.note, null);
 });
 
 test("user-defined plan options carry the user_defined tag and family brand icon keys", () => {

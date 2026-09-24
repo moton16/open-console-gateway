@@ -22,7 +22,7 @@ import {
   resolveProviderPreset,
   type ProviderPreset,
 } from "./provider-presets.ts";
-import { PROVIDER_FAMILIES } from "./provider-families.ts";
+import { PROVIDER_FAMILIES, groupPresetsByFamily } from "./provider-families.ts";
 import { emptyProviderDefinitionDraft, buildProviderDefinitionUpdateBody, validateProviderDefinitionDraft, type ProviderDefinitionDraft } from "./dynamic-provider.ts";
 import { buildOnboardingCommitPayload } from "./onboarding-draft.ts";
 
@@ -618,4 +618,68 @@ test("legacy rows keep bare import names even when the endpoint matches an offic
   );
   assert.equal(prefixed.importPresetId, "anthropic");
   assert.equal(prefixed.discoveryPreset?.id, "anthropic");
+});
+
+test("Vertex AI is never the Google family default variant", () => {
+  const google = groupPresetsByFamily(PROVIDER_PRESETS)
+    .find((group) => group.family.id === "google");
+  assert.ok(google, "the google family must exist");
+  // The chooser falls back to presets[0] for a family default, so the order is
+  // part of the contract: an empty-endpoint preset first would drop every
+  // Google user into a form that demands a pasted URL.
+  assert.deepEqual(google.presets.map((preset) => preset.id), ["gemini", "vertex-ai"]);
+  assert.deepEqual(google.presets.map((preset) => preset.variant), ["Gemini API", "Vertex AI"]);
+});
+
+test("Vertex public model names keep the preset prefix and the publisher id", () => {
+  // The compatible surface addresses models as google/<model>, so the public
+  // name carries two slashes. Both halves are user-visible facts.
+  assert.equal(
+    providerPresetImportPublicName("vertex-ai", "google/gemini-2.5-flash"),
+    "vertex-ai/google/gemini-2.5-flash",
+  );
+  const vertex = PROVIDER_PRESETS.find((preset) => preset.id === "vertex-ai");
+  assert.ok(vertex, "the vertex-ai preset must ship");
+  assert.deepEqual(providerPresetDefaultModels(vertex), ["google/gemini-2.5-flash"]);
+  assert.equal(providerPresetModelDiscoveryEnabled(vertex), false);
+});
+
+test("every empty-endpoint preset exposes a placeholder and a localized caveat", () => {
+  const empty = PROVIDER_PRESETS.filter((preset) => preset.endpointUrl === "");
+  assert.ok(empty.length > 0, "at least one preset must ask the user for an address");
+  for (const preset of empty) {
+    const placeholder = providerPresetEndpointPlaceholder(preset);
+    assert.ok(placeholder.length > 0, `${preset.id} has no placeholder`);
+    assert.ok(placeholder.startsWith("https://"), preset.id);
+    // The caveat is where a user learns the key class and the rate limit before
+    // failing upstream, so every locale must carry one.
+    for (const locale of ["zh-CN", "en-US"]) {
+      assert.ok(providerPresetNote(preset, locale).trim().length > 0, `${preset.id} ${locale}`);
+    }
+    // The placeholder drives a hint; it is never a saved endpoint value.
+    const applied = applyProviderPresetToDraft(emptyProviderDefinitionDraft(), preset);
+    assert.equal(applied.endpoint_url, "", preset.id);
+    assert.notEqual(applied.endpoint_url, placeholder, preset.id);
+  }
+});
+
+test("an empty endpoint is rejected with its own field-level code", () => {
+  const draft = emptyProviderDefinitionDraft();
+  draft.name = "Vertex";
+  draft.auth_kind = "x-goog-api-key";
+  draft.key = "AQ.example";
+  draft.models = [{
+    public_model: "vertex-ai/google/gemini-2.5-flash",
+    upstream_model: "google/gemini-2.5-flash",
+  }];
+  assert.equal(validateProviderDefinitionDraft(draft), "missing_endpoint_url");
+  draft.endpoint_url =
+    "https://aiplatform.googleapis.com/v1/projects/p/locations/global/endpoints/openapi/chat/completions";
+  assert.equal(validateProviderDefinitionDraft(draft), null);
+  // The Google-style header is a key-bearing scheme: a blank key must fail.
+  draft.key = "";
+  assert.equal(
+    validateProviderDefinitionDraft(draft, { mode: "create", requireKey: true }),
+    "missing_key",
+  );
 });

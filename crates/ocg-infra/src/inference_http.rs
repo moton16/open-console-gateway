@@ -66,6 +66,8 @@ pub enum InferenceAuthScheme {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    XGoogApiKey,
 }
 
 /// Join `path` onto an already-canonical http(s) base while keeping the origin
@@ -141,6 +143,12 @@ pub fn isolated_inference_headers(
             let value = HeaderValue::from_str(api_key)
                 .map_err(|error| InferenceHttpError::InvalidUrl(error.to_string()))?;
             headers.insert(HeaderName::from_static("api-key"), value);
+        }
+        InferenceAuthScheme::XGoogApiKey => {
+            // Unprefixed key: Google expects the raw API key in this header.
+            let value = HeaderValue::from_str(api_key)
+                .map_err(|error| InferenceHttpError::InvalidUrl(error.to_string()))?;
+            headers.insert(HeaderName::from_static("x-goog-api-key"), value);
         }
     }
     Ok(headers)

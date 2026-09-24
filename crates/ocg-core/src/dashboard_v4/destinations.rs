@@ -238,6 +238,7 @@ fn destination_definition(
         AuthSchemeDto::Bearer => DynamicAuthKind::Bearer,
         AuthSchemeDto::XApiKey => DynamicAuthKind::XApiKey,
         AuthSchemeDto::ApiKey => DynamicAuthKind::ApiKey,
+        AuthSchemeDto::XGoogApiKey => DynamicAuthKind::XGoogApiKey,
         AuthSchemeDto::None => DynamicAuthKind::None,
     };
     if destination.capabilities.observer {
@@ -508,6 +509,7 @@ impl From<AuthScheme> for AuthSchemeDto {
             AuthScheme::Bearer => Self::Bearer,
             AuthScheme::XApiKey => Self::XApiKey,
             AuthScheme::ApiKey => Self::ApiKey,
+            AuthScheme::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }
@@ -541,6 +543,7 @@ impl From<&HttpProtocolRouteDto> for ocg_domain::destination::HttpProtocolRoute 
                 AuthSchemeDto::Bearer => AuthScheme::Bearer,
                 AuthSchemeDto::XApiKey => AuthScheme::XApiKey,
                 AuthSchemeDto::ApiKey => AuthScheme::ApiKey,
+                AuthSchemeDto::XGoogApiKey => AuthScheme::XGoogApiKey,
                 AuthSchemeDto::None => AuthScheme::None,
             },
         }

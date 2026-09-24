@@ -577,6 +577,9 @@ pub(crate) fn custom_auth_kind_on(
             "bearer" => Ok(ocg_domain::dynamic::DynamicAuthKind::Bearer),
             "x_api_key" | "x-api-key" => Ok(ocg_domain::dynamic::DynamicAuthKind::XApiKey),
             "api_key" | "api-key" => Ok(ocg_domain::dynamic::DynamicAuthKind::ApiKey),
+            "x_goog_api_key" | "x-goog-api-key" => {
+                Ok(ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey)
+            }
             "none" => Ok(ocg_domain::dynamic::DynamicAuthKind::None),
             other => anyhow::bail!("unknown destinations.auth_scheme `{other}`"),
         })
@@ -1221,6 +1224,7 @@ pub(crate) fn custom_destination_for_update_on(
         "bearer" => AuthScheme::Bearer,
         "x_api_key" | "x-api-key" => AuthScheme::XApiKey,
         "api_key" | "api-key" => AuthScheme::ApiKey,
+        "x_goog_api_key" | "x-goog-api-key" => AuthScheme::XGoogApiKey,
         "none" => AuthScheme::None,
         other => anyhow::bail!("unknown destinations.auth_scheme `{other}`"),
     };
@@ -1286,6 +1290,7 @@ pub(crate) fn upsert_imported_custom_destination_on(
             AuthScheme::Bearer => ocg_domain::dynamic::DynamicAuthKind::Bearer,
             AuthScheme::XApiKey => ocg_domain::dynamic::DynamicAuthKind::XApiKey,
             AuthScheme::ApiKey => ocg_domain::dynamic::DynamicAuthKind::ApiKey,
+            AuthScheme::XGoogApiKey => ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey,
             AuthScheme::None => ocg_domain::dynamic::DynamicAuthKind::None,
         },
         mappings: models.to_vec(),

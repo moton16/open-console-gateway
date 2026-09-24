@@ -138,6 +138,8 @@ pub enum UpstreamAuthScheme {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    XGoogApiKey,
 }
 
 impl UpstreamAuthScheme {
@@ -146,6 +148,7 @@ impl UpstreamAuthScheme {
             Self::Bearer => "bearer",
             Self::XApiKey => "x-api-key",
             Self::ApiKey => "api-key",
+            Self::XGoogApiKey => "x-goog-api-key",
         }
     }
 }
@@ -156,8 +159,9 @@ impl TryFrom<&str> for UpstreamAuthScheme {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "bearer" => Ok(Self::Bearer),
-            "x-api-key" => Ok(Self::XApiKey),
+            "x-api-key" | "x_api_key" => Ok(Self::XApiKey),
             "api-key" => Ok(Self::ApiKey),
+            "x-goog-api-key" | "x_goog_api_key" => Ok(Self::XGoogApiKey),
             _ => Err(CatalogParseError::UnknownAuthScheme(value.to_string())),
         }
     }

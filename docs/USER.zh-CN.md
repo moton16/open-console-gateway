@@ -21,7 +21,7 @@
 - [应用](user/applications.zh-CN.md) — DSH 插件安装流程、恢复与移除。
 - [账号](user/accounts.zh-CN.md) — Plan、凭据、排序、额度行为与托管注册。
 - [供应商](user/providers.zh-CN.md) — 目录、供应商合约、按模型协议覆盖、探测与用户定义供应商。
-- [Plan 与 API 预设](user/provider-presets.zh-CN.md) — 从账号或供应商入口浏览 Plan/API 预设；固定预设提供地址、协议、鉴权与默认模型。
+- [Plan 与 API 预设](user/provider-presets.zh-CN.md) — 从账号或供应商入口浏览 Plan/API 预设；固定预设提供协议、鉴权与默认模型，少数（Azure、Bedrock、Vertex AI）需要你自己填写地址。
 - [日志与设置](user/logs-settings.zh-CN.md) — 请求日志、设置与代理模式。
 - [Gateway 行为](user/gateway.zh-CN.md) — 端点、鉴权与别名。
 - [协议转换](user/protocol-conversion.zh-CN.md) — 推荐/已验证协议、透传与转换边界。

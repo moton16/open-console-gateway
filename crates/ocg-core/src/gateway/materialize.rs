@@ -402,6 +402,9 @@ pub(crate) fn materialize_execution_routes(
                         AuthScheme::Bearer => ocg_domain::dynamic::DynamicAuthKind::Bearer,
                         AuthScheme::XApiKey => ocg_domain::dynamic::DynamicAuthKind::XApiKey,
                         AuthScheme::ApiKey => ocg_domain::dynamic::DynamicAuthKind::ApiKey,
+                        AuthScheme::XGoogApiKey => {
+                            ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey
+                        }
                         AuthScheme::None => ocg_domain::dynamic::DynamicAuthKind::None,
                     },
                 })

@@ -228,6 +228,7 @@ fn http_connection_members(
                 ocg_domain::destination::AuthScheme::Bearer => EndpointAuthScheme::Bearer,
                 ocg_domain::destination::AuthScheme::XApiKey => EndpointAuthScheme::XApiKey,
                 ocg_domain::destination::AuthScheme::ApiKey => EndpointAuthScheme::ApiKey,
+                ocg_domain::destination::AuthScheme::XGoogApiKey => EndpointAuthScheme::XGoogApiKey,
                 ocg_domain::destination::AuthScheme::None => EndpointAuthScheme::None,
             };
             endpoint_dto(
@@ -433,6 +434,7 @@ fn project_custom(
             DynamicAuthKind::Bearer => EndpointAuthScheme::Bearer,
             DynamicAuthKind::XApiKey => EndpointAuthScheme::XApiKey,
             DynamicAuthKind::ApiKey => EndpointAuthScheme::ApiKey,
+            DynamicAuthKind::XGoogApiKey => EndpointAuthScheme::XGoogApiKey,
             DynamicAuthKind::None => EndpointAuthScheme::None,
         },
         false,
@@ -487,6 +489,7 @@ fn dynamic_routes(
         DynamicAuthKind::Bearer => EndpointAuthScheme::Bearer,
         DynamicAuthKind::XApiKey => EndpointAuthScheme::XApiKey,
         DynamicAuthKind::ApiKey => EndpointAuthScheme::ApiKey,
+        DynamicAuthKind::XGoogApiKey => EndpointAuthScheme::XGoogApiKey,
         DynamicAuthKind::None => EndpointAuthScheme::None,
     };
     let mut routes = vec![RouteSpec {

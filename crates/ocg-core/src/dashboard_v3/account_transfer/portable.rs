@@ -341,6 +341,7 @@ pub(super) fn auth_scheme_from_dto(value: AuthSchemeDto) -> AuthScheme {
         AuthSchemeDto::Bearer => AuthScheme::Bearer,
         AuthSchemeDto::XApiKey => AuthScheme::XApiKey,
         AuthSchemeDto::ApiKey => AuthScheme::ApiKey,
+        AuthSchemeDto::XGoogApiKey => AuthScheme::XGoogApiKey,
     }
 }
 

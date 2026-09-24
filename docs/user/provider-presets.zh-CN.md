@@ -2,13 +2,13 @@
 
 # Plan 与 API 预设
 
-创建预设或显式重新套用预设时，系统会保存文档所列的整组路由。固定地址的预设不会从运行时主机名推导替换路径；更新 OCG 也不会改写已保存的连接。Azure 和 Bedrock 需填写资源或地区专属的 Responses URL。地址符合官方 Azure OpenAI 或 Bedrock Runtime 的主机与路径格式时，OCG 会补齐同一资源的其他已确认路由；自定义主机或路径则保留为一条可手动编辑的路由。Azure 静态 API Key 使用 `api-key` 请求头，Microsoft Entra 令牌使用 Bearer。Bedrock 没有兼容的 `GET /models`，需自行填写模型 ID。Gemini 原生 Google API 不属于这三种上游格式，因此预设使用官方列明的 OpenAI 兼容接口。
+创建预设或显式重新套用预设时，系统会保存文档所列的整组路由。固定地址的预设不会从运行时主机名推导替换路径；更新 OCG 也不会改写已保存的连接。Azure 和 Bedrock 需填写资源或地区专属的 Responses URL。地址符合官方 Azure OpenAI 或 Bedrock Runtime 的主机与路径格式时，OCG 会补齐同一资源的其他已确认路由；自定义主机或路径则保留为一条可手动编辑的路由。Azure 静态 API Key 使用 `api-key` 请求头，Microsoft Entra 令牌使用 Bearer。Bedrock 没有兼容的 `GET /models`，需自行填写模型 ID。Gemini 原生 Google API 不属于这三种上游格式，因此 Gemini API 与 Vertex AI 两个预设都使用官方列明的 OpenAI 兼容接口：前者是 `generativelanguage.googleapis.com`，后者是你自己项目端点下的 `endpoints/openapi` 路径。
 
 要更新早期预设创建的连接，进入**供应商 → 编辑连接**，点击**采用预设协议**，检查受影响的 Key 与地址后保存。仅更新 OCG 不会改写已有路由和授权。
 
 MiniMax 国内/API 与国际预设会保存独立的 Chat Completions、Responses 和 Messages 路由。Chat 和 Responses 使用 Bearer；Messages 使用 `x-api-key`。完整端点会被保存，面板不会猜测其他路径。MiMo API 与 MiMo Token Plan（国内）同样保存 Bearer 鉴权的 Chat `/v1/chat/completions`、Responses `/v1/responses` 和 Messages `/anthropic/v1/messages` 三条路由。选择规则见[协议默认值](providers.zh-CN.md#协议默认值与连接测试)。
 
-从 **账号 → 新增账号** 或 **供应商 → 添加供应商** 浏览 Plan/API 预设。两个按钮打开同一套账号页选择器。已有连接只列出仍有账号的内置供应商和已保存的用户定义供应商；未使用的内置模板与创建模板一起出现在新服务里。预设按厂商分组，地区或套餐变体使用紧凑选择器；搜索包含厂商、变体、预设名称与 ID，以及端点主机。选择器在 Key 字段之前显示只读连接摘要。固定预设提供地址、协议、鉴权与可修改的默认模型；Azure、Bedrock 仍需填写资源或地区地址，以及部署或模型信息。完成预设必须填写 Key，并同时创建供应商和首个账号；**保存草稿** 可以省略 Key。Custom API 与手动配置仍保留完整设置。
+从 **账号 → 新增账号** 或 **供应商 → 添加供应商** 浏览 Plan/API 预设。两个按钮打开同一套账号页选择器。已有连接只列出仍有账号的内置供应商和已保存的用户定义供应商；未使用的内置模板与创建模板一起出现在新服务里。预设按厂商分组，地区或套餐变体使用紧凑选择器；搜索包含厂商、变体、预设名称与 ID，以及端点主机。选择器在 Key 字段之前显示只读连接摘要。固定预设提供地址、协议、鉴权与可修改的默认模型；Azure、Bedrock 仍需填写资源或地区地址，以及部署或模型信息；Vertex AI 需填写你自己项目下的 `endpoints/openapi` 地址，且上游模型 ID 必须保留 publisher 前缀。完成预设必须填写 Key，并同时创建供应商和首个账号；**保存草稿** 可以省略 Key。Custom API 与手动配置仍保留完整设置。
 
 预设通过 Dashboard V4 onboarding commit 原子保存为普通用户定义供应商，参与账号排序、故障回退、模型路由和请求日志，保存后仍可编辑。它不会新增独立适配器，也不会在保存前自动创建账号。
 
@@ -36,13 +36,14 @@ MiniMax 国内/API 与国际预设会保存独立的 Chat Completions、Response
 
 协议路由已于 **2026-09-24** 按各运营方文档核对，表示服务提供的格式，不保证每个模型或每把 Key 都可使用。腾讯 TokenHub、阿里云 Responses、AtlasCloud、PPIO 与 Novita 存在逐模型差异。运营方只公布 Base URL 时，表中完整 Messages 地址采用标准 `/v1/messages` 后缀。StreamLake 的 Messages 代理地址对应默认模型 `kat-coder-pro-v2.5`，更换模型时需复核地址。Anthropic 的 Chat 兼容接口用于评估，完整 Claude 能力应使用原生 Messages。表格列出填写资源专属地址后 OCG 将预填的路由。
 
-下表按厂商族分组，每个预设变体各占一行；多变体厂商（腾讯、智谱、阿里云、Volcengine/BytePlus、百度千帆、StepFun、小米、MiniMax、StreamLake、SiliconFlow、Compshare）的所有变体集中在同一品牌标识下。`src/assets/provider-logos/` 下有 CC0 资源（Anthropic、Google、DeepSeek、Ollama、NVIDIA、OpenRouter、阿里云、字节跳动、百度）的厂商族会在选择器中显示该品牌 SVG，其他厂商使用带首字母的染色 monogram 块。内置 Plan Kimi Code CN、MiniMax CN 与 Ollama Cloud 虽不在选择器内，也同样展示厂商品牌标识。
+下表按厂商族分组，每个预设变体各占一行；多变体厂商（腾讯、智谱、阿里云、Volcengine/BytePlus、百度千帆、StepFun、小米、MiniMax、StreamLake、SiliconFlow、Compshare、Google）的所有变体集中在同一品牌标识下，同一家族的每一行以变体名标注（Google 下为 Gemini API 与 Vertex AI）。`src/assets/provider-logos/` 下有 CC0 资源（Anthropic、Google、DeepSeek、Ollama、NVIDIA、OpenRouter、阿里云、字节跳动、百度）的厂商族会在选择器中显示该品牌 SVG，其他厂商使用带首字母的染色 monogram 块。内置 Plan Kimi Code CN、MiniMax CN 与 Ollama Cloud 虽不在选择器内，也同样展示厂商品牌标识。
 
 | 预设 | 上游协议 | 鉴权 | 运营方文档 | 默认模型 |
 | --- | --- | --- | --- | --- |
 | OpenAI API | Responses + Chat Completions | bearer | [API 文档](https://developers.openai.com/api/reference/overview) | [`gpt-5.6-luna`](https://developers.openai.com/api/docs/models/gpt-5.6-luna) |
 | Anthropic API | Messages + Chat Completions | x-api-key（Messages）；bearer（Chat） | [API 文档](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk) | [`claude-haiku-4-5-20251001`](https://platform.claude.com/docs/en/models/overview) |
 | Google Gemini API | Chat Completions | bearer | [API 文档](https://ai.google.dev/gemini-api/docs/openai) | [`gemini-3.8-flash`](https://ai.google.dev/gemini-api/docs/openai) |
+| Google Vertex AI | Chat Completions（需填写项目端点） | x-goog-api-key | [API 文档](https://cloud.google.com/vertex-ai/generative-ai/docs/start/openai) | [`google/gemini-2.5-flash`](https://cloud.google.com/vertex-ai/generative-ai/docs/start/openai) |
 | xAI (Grok) API | Responses + Chat Completions | bearer | [API 文档](https://docs.x.ai/developers/quickstart) | [`grok-4.6`](https://docs.x.ai/developers/models) |
 | Azure OpenAI v1 | Responses + Chat Completions（需填资源 URL） | 静态 Key 使用 api-key | [API 文档](https://learn.microsoft.com/en-us/azure/foundry/openai/api-version-lifecycle) | 客户模型／部署 |
 | AWS Bedrock (API Key) | Responses + Chat Completions + Messages（需填地区 URL） | Responses/Chat 使用 bearer；Messages 使用 x-api-key | [API 文档](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html) | 客户模型／部署 |

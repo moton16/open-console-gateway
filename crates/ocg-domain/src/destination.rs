@@ -120,6 +120,8 @@ pub enum AuthScheme {
     Bearer,
     XApiKey,
     ApiKey,
+    /// Google-style key header (`x-goog-api-key`). Never emits `Authorization`.
+    XGoogApiKey,
 }
 
 impl AuthScheme {
@@ -129,6 +131,7 @@ impl AuthScheme {
             Self::Bearer => "bearer",
             Self::XApiKey => "x_api_key",
             Self::ApiKey => "api_key",
+            Self::XGoogApiKey => "x_goog_api_key",
         }
     }
 }
@@ -140,6 +143,7 @@ impl From<DynamicAuthKind> for AuthScheme {
             DynamicAuthKind::Bearer => Self::Bearer,
             DynamicAuthKind::XApiKey => Self::XApiKey,
             DynamicAuthKind::ApiKey => Self::ApiKey,
+            DynamicAuthKind::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }
@@ -150,6 +154,7 @@ impl From<UpstreamAuthScheme> for AuthScheme {
             UpstreamAuthScheme::Bearer => Self::Bearer,
             UpstreamAuthScheme::XApiKey => Self::XApiKey,
             UpstreamAuthScheme::ApiKey => Self::ApiKey,
+            UpstreamAuthScheme::XGoogApiKey => Self::XGoogApiKey,
         }
     }
 }

@@ -14,7 +14,7 @@ The **Adapter Registry** stays static and sealed. User-defined Providers are typ
 
 ## Create from a preset
 
-**Providers → Add Provider** and **Accounts → Add account** open the same Accounts chooser. Choose a [Plan or API preset](provider-presets.md) there to create the Provider and its first Key together. Fixed-address presets already set protocol, authentication, endpoint and a default chat model. Optional settings expose names and models. Azure and Bedrock also need their customer-specific address and model/deployment information. Switching presets clears the previous Key and mappings, then supplies the new preset's default model. Completing a preset requires a Key; **Save draft** may omit it. Save from either button commits through `POST /dashboard/api/v4/onboarding/commit`.
+**Providers → Add Provider** and **Accounts → Add account** open the same Accounts chooser. Choose a [Plan or API preset](provider-presets.md) there to create the Provider and its first Key together. Fixed-address presets already set protocol, authentication, endpoint and a default chat model. Optional settings expose names and models. Azure, Bedrock and Vertex AI also need their customer-specific address and the upstream's own model naming. Switching presets clears the previous Key and mappings, then supplies the new preset's default model. Completing a preset requires a Key; **Save draft** may omit it. Save from either button commits through `POST /dashboard/api/v4/onboarding/commit`.
 
 ## Create a user-defined Provider manually
 

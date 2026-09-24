@@ -37,6 +37,13 @@ The build script generates `PRESET_OFFERINGS` from each entry's `offering`;
 `preset_offering(preset_id)` reads that generated table. Do not maintain a
 second handwritten Rust map. Presets without a plan offering use `"api"`.
 
+Joining an existing multi-variant family is the one case that also edits a
+shipped row: each preset in a multi-preset family needs a non-empty, unique
+`variant`, while a singleton family must not carry one, so adding a second
+Google preset has to give the first row its variant label too.
+`src/domain/provider-presets.test.ts` enforces both directions, and the
+chooser labels each row with `variant ?? name`.
+
 ## 2. Applications
 
 The Applications page currently contains one DSH-specific V4 flow and one

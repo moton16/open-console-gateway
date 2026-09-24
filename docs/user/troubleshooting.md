@@ -32,6 +32,18 @@ get billed for a bad guess.
   key directly, use CLI `key ping <id>` or send a real client request.
   Managed-account Key verification and Custom **Test connection**
   record `auth_error` on 401 in those flows.
+- **A Vertex AI (Google) Provider fails.** The preset speaks to the project's
+  OpenAI-compatible `endpoints/openapi` address and expects an API Key bound to
+  the Agent Platform API; each status points at a different fix. `401` means the
+  Key is not that kind — a Google AI Studio `AIza` Key, or a Key without the
+  Agent Platform restriction — and the same rotation plus `auth_error`
+  recording as Custom API applies. `403` means the Key's API restrictions do not
+  cover Agent Platform, so routing moves to another provider. `404` has four
+  causes: the saved address is not the `endpoints/openapi` one, the project or
+  location is wrong, the upstream model ID lost its publisher prefix (it must
+  read `google/gemini-2.5-flash`), or the `YOUR-PROJECT` / `YOUR-LOCATION`
+  template was saved unreplaced. `429` means the Key's own rate limit; see
+  [limits](limits.md).
 - **The dashboard says the page version does not match the service.** A cached
   older SPA hit the tombstoned `/dashboard/api` REST and received HTTP 410.
   Refresh the page; if that is not enough, install the

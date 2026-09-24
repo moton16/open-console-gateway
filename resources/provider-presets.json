@@ -62,6 +62,7 @@
     "name": "Google Gemini API",
     "category": "official",
     "family": "google",
+    "variant": "Gemini API",
     "offering": "api",
     "defaultModels": ["gemini-3.8-flash"],
     "endpointUrl": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
@@ -73,6 +74,26 @@
       "en": "Uses Google's official OpenAI-compatible endpoint and a Gemini API Key. Select a chat-capable model.",
       "zh": "使用 Google 官方 OpenAI 兼容端点和 Gemini API Key；请选择支持对话的模型。"
     }
+  },
+  {
+    "id": "vertex-ai",
+    "name": "Google Vertex AI",
+    "category": "official",
+    "family": "google",
+    "variant": "Vertex AI",
+    "offering": "api",
+    "defaultModels": ["google/gemini-2.5-flash"],
+    "endpointUrl": "",
+    "protocol": "chat_completions",
+    "authKind": "x-goog-api-key",
+    "docsUrl": "https://cloud.google.com/vertex-ai/generative-ai/docs/start/openai",
+    "websiteUrl": "https://console.cloud.google.com/vertex-ai",
+    "note": {
+      "en": "Enter your project's OpenAI-compatible chat endpoint; the full path must contain /endpoints/openapi/. Use an API Key bound to the Agent Platform API. Express keys allow roughly 10 requests per minute. Upstream model IDs keep their publisher prefix, for example google/gemini-2.5-flash.",
+      "zh": "填写你项目的 OpenAI 兼容 chat 端点，完整路径必须含 /endpoints/openapi/；使用绑定 Agent Platform API 的 API Key。Express 档位约 10 请求/分钟。上游模型 ID 必须保留 publisher 前缀，例如 google/gemini-2.5-flash。"
+    },
+    "endpointPlaceholder": "https://aiplatform.googleapis.com/v1/projects/YOUR-PROJECT/locations/YOUR-LOCATION/endpoints/openapi/chat/completions",
+    "modelDiscovery": false
   },
   {
     "id": "xai",

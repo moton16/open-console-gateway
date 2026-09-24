@@ -67,6 +67,13 @@ fn official_presets_resolve_to_their_exact_inference_endpoints() {
                 assert_eq!(headers["api-key"], "preset-test-key", "{id}");
                 assert!(!headers.contains_key(AUTHORIZATION), "{id}");
             }
+            ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey => {
+                // Google rejects the request when Authorization is present
+                // next to the key, so the absence is the point of this arm.
+                assert_eq!(headers["x-goog-api-key"], "preset-test-key", "{id}");
+                assert!(!headers.contains_key(AUTHORIZATION), "{id}");
+                assert!(!headers.contains_key("x-api-key"), "{id}");
+            }
             ocg_domain::dynamic::DynamicAuthKind::None => unreachable!(),
         }
         if preset["modelDiscovery"].as_bool() != Some(false) {
@@ -90,6 +97,80 @@ fn preset_offerings_mirror_matches_shipped_presets() {
         let expected = preset["offering"].as_str().unwrap_or("api");
         assert_eq!(ocg_domain::provider::preset_offering(id), expected, "{id}");
     }
+}
+
+/// An empty `endpointUrl` skips every downstream assertion in the traversal
+/// test above, so the placeholder such a preset hands the user is verified
+/// here: a valid https address for the declared protocol plus an obvious
+/// sentinel, because a user who saves it unreplaced gets a 404 per request.
+#[test]
+fn empty_endpoint_presets_carry_a_usable_placeholder() {
+    let presets: Vec<serde_json::Value> =
+        serde_json::from_str(include_str!("../../../../resources/provider-presets.json")).unwrap();
+    let mut checked = 0usize;
+    for preset in presets {
+        let id = preset["id"].as_str().unwrap();
+        if preset["endpointUrl"].as_str().unwrap() != "" {
+            continue;
+        }
+        checked += 1;
+        let protocol = preset["protocol"].as_str().unwrap();
+        let placeholder = preset["endpointPlaceholder"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{id} has no endpointPlaceholder"));
+        let parsed =
+            reqwest::Url::parse(placeholder).unwrap_or_else(|error| panic!("{id}: {error}"));
+        assert_eq!(parsed.scheme(), "https", "{id}: {placeholder}");
+        assert!(parsed.query().is_none(), "{id}: {placeholder}");
+        assert!(parsed.fragment().is_none(), "{id}: {placeholder}");
+        assert!(parsed.username().is_empty(), "{id}: {placeholder}");
+        assert!(parsed.password().is_none(), "{id}: {placeholder}");
+        let suffix = match protocol {
+            "chat_completions" => "/chat/completions",
+            "responses" => "/responses",
+            "messages" => "/messages",
+            other => panic!("{id}: unknown protocol {other}"),
+        };
+        assert!(parsed.path().ends_with(suffix), "{id}: {placeholder}");
+        // A blanket "must contain YOUR-" rule cannot hold: Bedrock ships a
+        // concrete regional example on purpose. The sentinel that stops an
+        // unedited template from being saved is pinned per preset, where the
+        // preset actually needs user-supplied project/location values.
+    }
+    assert!(checked > 0, "no empty-endpoint preset is covered");
+}
+
+/// G0 (2026-09-24) measured this exact shape against the live service: the
+/// OpenAI-compatible surface accepts the Agent Platform API key in
+/// `x-goog-api-key`, and the derived discovery path answers 404. The shipped
+/// preset must therefore keep discovery off and stay an opaque endpoint.
+#[test]
+fn vertex_compat_endpoint_resolves_as_opaque_inference_endpoint() {
+    let endpoint = "https://aiplatform.googleapis.com/v1/projects/YOUR-PROJECT/locations/YOUR-LOCATION/endpoints/openapi/chat/completions";
+    let resolved =
+        resolve_custom_endpoints(endpoint, UpstreamProtocolKind::ChatCompletions).unwrap();
+    assert_eq!(resolved.inference.as_str(), endpoint);
+    let models = resolved.models.expect("derived discovery path");
+    assert_eq!(
+        models.as_str(),
+        "https://aiplatform.googleapis.com/v1/projects/YOUR-PROJECT/locations/YOUR-LOCATION/endpoints/openapi/models"
+    );
+
+    let presets: Vec<serde_json::Value> =
+        serde_json::from_str(include_str!("../../../../resources/provider-presets.json")).unwrap();
+    let vertex = presets
+        .iter()
+        .find(|preset| preset["id"] == "vertex-ai")
+        .expect("vertex-ai preset");
+    assert_eq!(vertex["authKind"], "x-goog-api-key", "vertex-ai");
+    assert_eq!(vertex["endpointUrl"], "", "vertex-ai");
+    assert_eq!(vertex["modelDiscovery"], false, "vertex-ai");
+    assert_eq!(vertex["protocol"], "chat_completions", "vertex-ai");
+    // Both user-specific segments stay visibly unfilled, so a copied template
+    // is never mistaken for a working address.
+    let placeholder = vertex["endpointPlaceholder"].as_str().unwrap();
+    assert!(placeholder.contains("YOUR-PROJECT"), "{placeholder}");
+    assert!(placeholder.contains("YOUR-LOCATION"), "{placeholder}");
 }
 
 fn test_config(mode: ProxyMode, proxy_url: &str) -> AppConfig {

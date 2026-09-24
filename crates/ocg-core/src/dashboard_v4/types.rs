@@ -854,6 +854,7 @@ pub enum AuthSchemeDto {
     Bearer,
     XApiKey,
     ApiKey,
+    XGoogApiKey,
 }
 
 /// Which client model names may resolve to a destination mapping.

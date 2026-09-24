@@ -496,6 +496,12 @@ export interface ChooserDetail {
   title: string;
   tag: { label: ChooserTagLabelCode; type: "warning" | "default" } | null;
   links: { docsUrl: string; websiteUrl: string } | null;
+  /**
+   * Preset-authored caveat shown beside the credential form (key class, rate
+   * limit, naming rules). Kept as raw pairs so this stays locale-free; the
+   * view resolves one with `providerPresetNoteText`.
+   */
+  note: { en: string; zh: string } | null;
 }
 
 /**
@@ -516,6 +522,7 @@ export function describeChooserSelection(
       title: option.family.label,
       tag: { label: "provider_preset", type: "default" },
       links: { docsUrl: preset.docsUrl, websiteUrl: preset.websiteUrl },
+      note: preset.note,
     };
   }
   if ("preset" in option) {
@@ -525,6 +532,7 @@ export function describeChooserSelection(
       title: option.preset.name,
       tag: { label: "provider_preset", type: "default" },
       links: { docsUrl: option.preset.docsUrl, websiteUrl: option.preset.websiteUrl },
+      note: option.preset.note,
     };
   }
   if ("source" in option && option.source === "manual") {
@@ -534,10 +542,11 @@ export function describeChooserSelection(
       title: option.label,
       tag: { label: "user_defined", type: "default" },
       links: null,
+      note: null,
     };
   }
   if (!("plan" in option)) {
-    return { kind: "platform", iconKey: "database", title: option.label, tag: null, links: null };
+    return { kind: "platform", iconKey: "database", title: option.label, tag: null, links: null, note: null };
   }
   let tag: ChooserDetail["tag"] = null;
   if (option.source === "user-defined") tag = { label: "user_defined", type: "default" };
@@ -548,5 +557,6 @@ export function describeChooserSelection(
     title: option.label,
     tag,
     links: null,
+    note: null,
   };
 }

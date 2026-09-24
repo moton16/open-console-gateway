@@ -290,6 +290,7 @@ async fn execute_protocol_request(
         (UpstreamAuth::XApiKey, Some(key)) => Some((UpstreamAuthScheme::XApiKey, key)),
         (UpstreamAuth::ApiKey, Some(key)) => Some((UpstreamAuthScheme::ApiKey, key)),
         (UpstreamAuth::Bearer, Some(key)) => Some((UpstreamAuthScheme::Bearer, key)),
+        (UpstreamAuth::XGoogApiKey, Some(key)) => Some((UpstreamAuthScheme::XGoogApiKey, key)),
         (UpstreamAuth::OpenCodeProtocolDefault, Some(key))
             if format == crate::kernel::protocol::ApiFormat::Messages =>
         {

@@ -2366,6 +2366,9 @@ fn frozen_test_plan(
                 ocg_domain::destination::AuthScheme::ApiKey => {
                     ocg_domain::dynamic::DynamicAuthKind::ApiKey
                 }
+                ocg_domain::destination::AuthScheme::XGoogApiKey => {
+                    ocg_domain::dynamic::DynamicAuthKind::XGoogApiKey
+                }
                 ocg_domain::destination::AuthScheme::None => {
                     ocg_domain::dynamic::DynamicAuthKind::None
                 }

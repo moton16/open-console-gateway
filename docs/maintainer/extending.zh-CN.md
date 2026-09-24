@@ -19,6 +19,8 @@ Provider 注册表始终静态、密封。
 
 新增 **preset** 只需在 `resources/provider-presets.json` 中加入条目。构建脚本根据各条目的 `offering` 生成 `PRESET_OFFERINGS`，`preset_offering(preset_id)` 读取该生成表；不要另行维护手写 Rust 映射。未声明 plan offering 的 preset 使用 `"api"`。
 
+加入一个已有多变体的家族是唯一的例外：此时还必须修改已发布的那一行。多变体家族里每条预设都需要非空且唯一的 `variant`，而单条家族又必须不带 `variant`，因此新增第二条 Google 预设时必须同时给第一条补上变体标签。`src/domain/provider-presets.test.ts` 会双向强制这条规则，选择器按 `variant ?? name` 显示每一行。
+
 ## 2. 应用
 
 应用页目前只有一个 DSH 专用 V4 流程和一份 OCG 自有插件包；它不是通用注册表，也不是承诺开放的扩展点。只有第二个应用具备明确的安装、凭据、生命周期与验收契约时，才按该具体需求增加。见[应用](../user/applications.zh-CN.md)。

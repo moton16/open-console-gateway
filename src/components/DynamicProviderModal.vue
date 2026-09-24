@@ -91,6 +91,20 @@
             :input-props="{ 'aria-label': t('API 地址') }"
             :placeholder="endpointPlaceholder"
           />
+          <p v-if="fixedEndpointRequired" class="field-hint">
+            {{ t("必须填写该供应商文档中的完整端点地址；地址不能包含查询参数。") }}
+          </p>
+          <n-button
+            v-if="fixedEndpointRequired && endpointTemplate"
+            attr-type="button"
+            size="small"
+            text
+            type="primary"
+            :disabled="fieldsLocked"
+            @click="insertEndpointTemplate"
+          >
+            {{ t("插入地址模板") }}
+          </n-button>
         </n-form-item>
         <n-form-item v-if="!fixedPreset" :label="t('上游协议')">
           <n-select
@@ -594,12 +608,22 @@ const fixedSeededModels = computed(() => (
 const fixedSeeded = computed(() => fixedSeededModels.value.length > 0);
 /** Azure/Bedrock-style presets have no fixed endpoint; the address stays required. */
 const fixedEndpointRequired = computed(() => Boolean(fixedPreset.value && !fixedPreset.value.endpointUrl));
+/** Display-only preset template; only meaningful as an editable starting point. */
+const endpointTemplate = computed(() => {
+  const preset = fixedPreset.value;
+  if (!preset || preset.endpointUrl) return "";
+  return providerPresetEndpointPlaceholder(preset);
+});
 /**
  * Seeded fixed rows keep the model editor and model test behind More
  * settings; without seeds the editor stays visible so save validation is
- * never a hidden blocker.
+ * never a hidden blocker. A preset whose address the user must paste keeps
+ * them visible too: the model test is the only way to verify that address
+ * before saving.
  */
-const showAdvancedDetails = computed(() => !fixedSeeded.value || settingsOpen.value);
+const showAdvancedDetails = computed(
+  () => !fixedSeeded.value || settingsOpen.value || fixedEndpointRequired.value,
+);
 const testTargets = computed(() => completeDynamicTestTargets(draft.value.models));
 const testTarget = computed(() => (
   testTargets.value[Math.min(testTargetIndex.value, Math.max(testTargets.value.length - 1, 0))] ?? null
@@ -690,6 +714,12 @@ const authOptions = computed(() => DYNAMIC_AUTH_KINDS.map((value) => ({
   value,
   label: value === "none" ? t("无鉴权") : value === "bearer" ? "Bearer" : value,
 })));
+
+/** Writes the display-only preset template into the draft as an editable start. */
+function insertEndpointTemplate(): void {
+  if (fieldsLocked.value || !endpointTemplate.value) return;
+  draft.value.endpoint_url = endpointTemplate.value;
+}
 
 let formWasVisible = false;
 

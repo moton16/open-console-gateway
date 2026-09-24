@@ -77,7 +77,7 @@
 
 ## 出站代理
 
-- 全局出站代理存储在 `AppConfig` 中，支持 auto、manual HTTP、force-direct 与按模型 List；转发使用请求入口快照，热切换不改变飞行中请求。Custom 与动态 HTTP 遵循同一代理策略，不跟随重定向，不转发面板/客户端认证，并独立使用连接所有的 Bearer、`x-api-key` 或无鉴权配置，不再从协议推断。携带秘密的尝试必须命中该 Key 已保存的实际 Endpoint ID 与 Origin；修改路由不会自动授权。Custom/动态 URL 与实际连接 DNS 继续拒绝元数据、链路本地、未指定、组播、AWS IMDS IPv6 与不透明 IPv4 形式。
+- 全局出站代理存储在 `AppConfig` 中，支持 auto、manual HTTP、force-direct 与按模型 List；转发使用请求入口快照，热切换不改变飞行中请求。Custom 与动态 HTTP 遵循同一代理策略，不跟随重定向，不转发面板/客户端认证，并独立使用连接所有的 Bearer、`x-api-key`、`x-goog-api-key` 或无鉴权配置，不再从协议推断。携带秘密的尝试必须命中该 Key 已保存的实际 Endpoint ID 与 Origin；修改路由不会自动授权。Custom/动态 URL 与实际连接 DNS 继续拒绝元数据、链路本地、未指定、组播、AWS IMDS IPv6 与不透明 IPv4 形式。
 
 ## 套餐目录与 Custom API 边界
 

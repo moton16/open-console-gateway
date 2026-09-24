@@ -233,6 +233,9 @@ fn inference_auth_scheme(
         UpstreamAuthScheme::Bearer => ocg_infra::inference_http::InferenceAuthScheme::Bearer,
         UpstreamAuthScheme::XApiKey => ocg_infra::inference_http::InferenceAuthScheme::XApiKey,
         UpstreamAuthScheme::ApiKey => ocg_infra::inference_http::InferenceAuthScheme::ApiKey,
+        UpstreamAuthScheme::XGoogApiKey => {
+            ocg_infra::inference_http::InferenceAuthScheme::XGoogApiKey
+        }
     }
 }
 
@@ -620,6 +623,9 @@ pub fn header_map_contains_forbidden_client_credentials(
             UpstreamAuthScheme::Bearer if lower == "authorization" => false,
             UpstreamAuthScheme::XApiKey if lower == "x-api-key" => false,
             UpstreamAuthScheme::ApiKey if lower == "api-key" => false,
+            // The name is on FORBIDDEN_CLIENT_HEADERS so inbound client copies
+            // never reach the upstream; this scheme's own credential is allowed.
+            UpstreamAuthScheme::XGoogApiKey if lower == "x-goog-api-key" => false,
             _ => FORBIDDEN_CLIENT_HEADERS.contains(&lower),
         }
     })

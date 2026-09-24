@@ -708,7 +708,10 @@ pub(crate) async fn forward_request_with_deadline(
         .map_err(|error| anyhow::anyhow!(error))?;
     if matches!(
         resolved_auth,
-        UpstreamAuth::Bearer | UpstreamAuth::XApiKey | UpstreamAuth::ApiKey
+        UpstreamAuth::Bearer
+            | UpstreamAuth::XApiKey
+            | UpstreamAuth::ApiKey
+            | UpstreamAuth::XGoogApiKey
     ) {
         let key = key
             .as_deref()
@@ -763,6 +766,11 @@ pub(crate) async fn forward_request_with_deadline(
                         .expect("validated key must remain valid when prefixed as Bearer");
                 upstream_headers.insert(reqwest::header::AUTHORIZATION, authorization);
             }
+            UpstreamAuth::XGoogApiKey => {
+                // Google rejects any request that carries an `Authorization`
+                // header next to the key, so this arm must never emit one.
+                upstream_headers.insert("x-goog-api-key", key_header);
+            }
             _ => unreachable!(),
         }
     }
@@ -790,6 +798,7 @@ pub(crate) async fn forward_request_with_deadline(
             let scheme = match attempt_spec.auth {
                 UpstreamAuth::XApiKey => crate::provider::UpstreamAuthScheme::XApiKey,
                 UpstreamAuth::ApiKey => crate::provider::UpstreamAuthScheme::ApiKey,
+                UpstreamAuth::XGoogApiKey => crate::provider::UpstreamAuthScheme::XGoogApiKey,
                 _ => crate::provider::UpstreamAuthScheme::Bearer,
             };
             let mut headers = crate::custom_http::isolated_custom_headers(scheme, api_key)

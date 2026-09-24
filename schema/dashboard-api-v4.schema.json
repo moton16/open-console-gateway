@@ -3,12 +3,21 @@
   "$defs": {
     "AccountAuthScheme": {
       "description": "Custom auth scheme. Wire values match V2 kebab-case.",
-      "enum": [
-        "bearer",
-        "x-api-key",
-        "api-key"
-      ],
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "bearer",
+            "x-api-key",
+            "api-key"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "x-goog-api-key",
+          "description": "Google-style key header (`x-goog-api-key`).",
+          "type": "string"
+        }
+      ]
     },
     "AccountConfigurationOwnerDto": {
       "description": "Owner of endpoint, protocol and model configuration.",
@@ -151,7 +160,8 @@
         "none",
         "bearer",
         "x_api_key",
-        "api_key"
+        "api_key",
+        "x_goog_api_key"
       ],
       "type": "string"
     },
@@ -2464,14 +2474,23 @@
     },
     "EndpointAuthScheme": {
       "description": "Auth advertised on a connection endpoint. `Sealed` is used for built-in\nadapters whose scheme is owned by code, not by the projected row.",
-      "enum": [
-        "bearer",
-        "x-api-key",
-        "api-key",
-        "sealed",
-        "none"
-      ],
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "bearer",
+            "x-api-key",
+            "api-key",
+            "sealed",
+            "none"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "x-goog-api-key",
+          "description": "Google-style key header (`x-goog-api-key`). Never emits `Authorization`.",
+          "type": "string"
+        }
+      ]
     },
     "EndpointOperation": {
       "description": "Inference operation advertised by one endpoint. Mapped 1:1 from\n[`UpstreamProtocolKind`].",
@@ -3621,6 +3640,7 @@
         "bearer",
         "x-api-key",
         "api-key",
+        "x-goog-api-key",
         "none"
       ],
       "type": "string"

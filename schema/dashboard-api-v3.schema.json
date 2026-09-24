@@ -208,12 +208,21 @@
     },
     "AccountAuthScheme": {
       "description": "Custom auth scheme. Wire values match V2 kebab-case.",
-      "enum": [
-        "bearer",
-        "x-api-key",
-        "api-key"
-      ],
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "bearer",
+            "x-api-key",
+            "api-key"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "x-goog-api-key",
+          "description": "Google-style key header (`x-goog-api-key`).",
+          "type": "string"
+        }
+      ]
     },
     "AccountCreate": {
       "additionalProperties": false,
@@ -5552,6 +5561,7 @@
         "bearer",
         "x-api-key",
         "api-key",
+        "x-goog-api-key",
         "none"
       ],
       "type": "string"
